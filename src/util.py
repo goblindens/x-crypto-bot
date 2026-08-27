@@ -7,8 +7,32 @@ import unicodedata
 from datetime import datetime, timezone
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
-TWEET_LIMIT = 280
-URL_WEIGHT = 23  # o X encurta toda URL para 23 caracteres via t.co
+# Limites por plataforma. O X encurta toda URL para 23 caracteres via t.co;
+# o Threads conta a URL inteira, caractere por caractere.
+PLATFORMS = {
+    "x":       {"limit": 280, "url_weight": 23},
+    "threads": {"limit": 500, "url_weight": 0},
+}
+
+TWEET_LIMIT = 280   # compatibilidade; use limit() no codigo novo
+URL_WEIGHT = 23
+
+_LIMIT = 280
+_URL_WEIGHT = 23
+
+
+def set_platform(name: str) -> None:
+    """Define os limites de texto usados por fits()/truncate_to_fit()."""
+    global _LIMIT, _URL_WEIGHT
+    cfg = PLATFORMS.get(name)
+    if not cfg:
+        raise ValueError(f"plataforma desconhecida: {name} (use: {', '.join(PLATFORMS)})")
+    _LIMIT = cfg["limit"]
+    _URL_WEIGHT = cfg["url_weight"]
+
+
+def limit() -> int:
+    return _LIMIT
 
 _URL_RE = re.compile(r"https?://\S+")
 _TRACKING_PREFIXES = ("utm_", "fbclid", "gclid", "ref", "source", "mc_cid", "mc_eid")
@@ -40,19 +64,25 @@ def fold(text: str) -> str:
 
 
 def tweet_length(text: str) -> int:
-    """Comprimento como o X conta: cada URL vale 23, o resto conta 1 por caractere."""
+    """Comprimento do jeito que a plataforma conta.
+
+    No X toda URL vale 23 caracteres (t.co), independente do tamanho real.
+    No Threads (url_weight = 0) a URL conta pelo tamanho que tem.
+    """
+    if _URL_WEIGHT == 0:
+        return len(text)
     without_urls = _URL_RE.sub("", text)
     n_urls = len(_URL_RE.findall(text))
-    return len(without_urls) + n_urls * URL_WEIGHT
+    return len(without_urls) + n_urls * _URL_WEIGHT
 
 
 def fits(text: str) -> bool:
-    return tweet_length(text) <= TWEET_LIMIT
+    return tweet_length(text) <= _LIMIT
 
 
 def truncate_to_fit(text: str, reserved: int = 0) -> str:
-    """Corta o texto em limite de palavra para caber no tweet."""
-    budget = TWEET_LIMIT - reserved
+    """Corta o texto em limite de palavra para caber no post."""
+    budget = _LIMIT - reserved
     if tweet_length(text) <= budget:
         return text
     words = text.split()

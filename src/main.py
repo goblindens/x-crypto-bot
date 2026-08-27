@@ -15,10 +15,11 @@ import yaml
 
 from .composer import compose_market, compose_news
 from .publisher import Publisher, PublishError
+from .publisher_threads import ThreadsPublisher
 from .ranker import select
 from .sources import collect_market, collect_news
 from .state import State
-from .util import fits, tweet_length
+from .util import fits, set_platform, tweet_length
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_PATH = os.path.join(ROOT, "config.yaml")
@@ -42,6 +43,18 @@ def load_dotenv() -> None:
                 continue
             key, value = line.split("=", 1)
             os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+def make_publisher(config: dict, dry_run: bool):
+    """Escolhe onde publicar. A variavel de ambiente PLATFORM tem prioridade
+    sobre o config.yaml -- util para testar sem editar arquivo."""
+    platform = (os.environ.get("PLATFORM") or config.get("platform") or "threads").strip().lower()
+    set_platform(platform)     # ajusta o limite de caracteres do texto
+    if platform == "threads":
+        return platform, ThreadsPublisher(dry_run=dry_run)
+    if platform == "x":
+        return platform, Publisher(dry_run=dry_run)
+    raise SystemExit(f"plataforma desconhecida no config.yaml: {platform} (use 'threads' ou 'x')")
 
 
 def quota_gate(state: State, config: dict, force: bool) -> str:
@@ -146,10 +159,10 @@ def main(argv=None) -> int:
     load_dotenv()
     config = load_config(args.config)
     state = State(STATE_PATH)
-    publisher = Publisher(dry_run=args.dry_run)
+    platform, publisher = make_publisher(config, args.dry_run)
 
     print(
-        f"[bot] modo={args.mode} dry_run={args.dry_run} "
+        f"[bot] plataforma={platform} modo={args.mode} dry_run={args.dry_run} "
         f"| mes: {state.posts_this_month()} post(s) | 24h: {state.posts_last_24h()}"
     )
 

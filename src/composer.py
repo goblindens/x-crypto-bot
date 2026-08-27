@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from datetime import timezone, timedelta
 
-from .util import (TWEET_LIMIT, fits, fold, fmt_pct, fmt_price, has_term, now_utc,
+from .util import (fits, fold, fmt_pct, fmt_price, has_term, limit, now_utc,
                    truncate_to_fit, tweet_length)
 
 BR_TZ = timezone(timedelta(hours=-3))
@@ -63,6 +63,26 @@ def compose_news(article, config: dict) -> str:
     return text
 
 
+def _first_sentence(summary: str, title: str) -> str:
+    """Primeira frase do resumo, se acrescentar alguma coisa ao titulo.
+
+    Muitos feeds repetem o titulo dentro do resumo -- nesse caso nao vale a
+    pena ocupar espaco com ele.
+    """
+    import re
+    texto = (summary or "").strip()
+    if not texto:
+        return ""
+    frase = re.split(r"(?<=[.!?])\s+", texto)[0].strip()
+    if len(frase) < 40 or len(frase) > 240:
+        return ""
+    if fold(frase)[:50] == fold(title)[:50]:
+        return ""
+    if not frase.endswith((".", "!", "?")):
+        frase += "."
+    return frase
+
+
 def _news_template(article, config: dict) -> str:
     emoji = pick_emoji(article.title + " " + article.summary)
     hashtags = pick_hashtags(article.title, config)
@@ -72,6 +92,13 @@ def _news_template(article, config: dict) -> str:
         tail += f"\n\n{hashtags}"
     reserved = tweet_length(tail)
     head = truncate_to_fit(f"{emoji} {article.title}", reserved=reserved)
+
+    # Sobrou espaco (tipico no Threads, 500 caracteres)? Acrescenta contexto.
+    frase = _first_sentence(article.summary, article.title)
+    if frase:
+        candidato = head + "\n\n" + frase + tail
+        if fits(candidato):
+            return candidato
     return head + tail
 
 
@@ -200,4 +227,4 @@ def _compose_news_with_claude(article, config: dict):
         tail += f"\n\n{hashtags}"
     body = truncate_to_fit(body, reserved=tweet_length(tail))
     text = body + tail
-    return text if tweet_length(text) <= TWEET_LIMIT else None
+    return text if tweet_length(text) <= limit() else None

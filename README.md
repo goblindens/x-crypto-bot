@@ -1,133 +1,146 @@
-# Bot de notícias de cripto para o X
+# Bot de notícias de cripto
 
 Publica sozinho, todos os dias, sem servidor e **sem custo nenhum**:
 
 - **Notícias** — lê feeds RSS de veículos brasileiros de cripto/mercado, pontua
   cada matéria por relevância, descarta publicidade e repetição, e posta as
-  melhores.
-- **Resumo de mercado** — uma vez por dia, preços de BTC/ETH/SOL/XRP,
+  melhores com link para a fonte.
+- **Resumo de mercado** — uma vez por dia: preços de BTC/ETH/SOL/XRP,
   dominância do Bitcoin e índice Medo & Ganância.
 
 Roda no GitHub Actions no horário agendado. Seu computador pode estar desligado.
 
+**Publica no Threads** (padrão). O X também é suportado, mas desde fevereiro de
+2026 ele cobra por post — veja [X (opcional, pago)](#x-opcional-pago).
+
 ---
 
-## Por que é 100% grátis
+## Por que é grátis
 
-| Peça | Plano usado | Custo |
+| Peça | Plano | Custo |
 |---|---|---|
-| X API | **Free** — 500 posts/mês | R$ 0 |
+| Threads API | Gratuita, sem tier pago — 250 posts/dia por perfil | R$ 0 |
 | GitHub Actions | Grátis ilimitado em repositório público (2.000 min/mês no privado; o bot usa ~200) | R$ 0 |
 | Feeds RSS | Públicos | R$ 0 |
 | CoinGecko | API pública, sem chave | R$ 0 |
 | Medo & Ganância (alternative.me) | API pública, sem chave | R$ 0 |
 | Redação dos posts | Template em Python | R$ 0 |
 
-O bot se limita a **8 posts/dia e 400/mês** (`config.yaml`), com folga dentro
-dos 500/mês do plano Free do X. Ele conta os posts do mês no `state/state.json`
-e simplesmente para quando chega no teto — nunca gera cobrança nem bloqueio.
-
-> Existe um modo opcional em que a **Claude** reescreve cada manchete como post
-> (fica bem melhor). Esse modo **é pago** e vem **desligado**. Veja o final deste
-> arquivo.
+O bot se limita a 8 posts/dia (`config.yaml`), bem abaixo dos 250/dia que a Meta
+permite. Não há cartão, crédito nem cobrança em nenhuma etapa.
 
 ---
 
 ## Passo a passo (do zero)
 
-### 1. Crie a conta de desenvolvedor no X
+### 1. Conta no Threads
 
-1. Acesse **developer.x.com** → *Sign up for Free Account*.
-2. Descreva o uso em inglês (ex.: *"Automated account that posts Brazilian
-   crypto and financial news headlines from public RSS feeds."*).
-3. Em **Projects & Apps**, abra o seu App → **User authentication settings** →
-   *Set up*:
-   - **App permissions:** `Read and write`
-   - **Type of App:** `Web App, Automated App or Bot`
-   - **Callback URI:** `https://example.com` · **Website URL:** qualquer URL sua
-   - Salve.
-4. Vá em **Keys and tokens** e gere:
-   - `API Key` e `API Key Secret`
-   - `Access Token` e `Access Token Secret`
+Você precisa de um perfil no Threads — ele vem junto com uma conta do Instagram.
+Se ainda não tiver, crie em threads.net.
 
-> ⚠️ **O erro mais comum:** gerar os Access Tokens **antes** de mudar a permissão
-> para *Read and write*. Nesse caso o token continua só-leitura e o post falha
-> com `403 Forbidden`. Se isso acontecer, clique em **Regenerate** nos Access
-> Tokens depois de salvar a permissão.
+### 2. Criar o app na Meta
 
-### 2. Suba o projeto para o GitHub
+1. Acesse **developers.facebook.com** → **My Apps** → **Create App**.
+2. Em *Use case*, escolha **Access the Threads API**.
+3. Dê um nome ao app (ex.: `bot-cripto`) e crie.
+4. No painel do app, abra o caso de uso **Threads** → **Customize**.
+5. Em **Permissions**, clique em **Add** nestas duas:
+   - `threads_basic`
+   - `threads_content_publish`
 
-Já existe um commit pronto nesta pasta. Crie um repositório vazio no GitHub
-(sem README) e rode:
+   Espere as duas mostrarem **Ready for testing**.
 
-```bash
-cd "/Users/sinvalgomes/Claude Code/x-crypto-bot" && git remote add origin https://github.com/SEU-USUARIO/SEU-REPO.git && git branch -M main && git push -u origin main
-```
+### 3. Gerar o token
 
-### 3. Cadastre as chaves como Secrets
+Ainda no caso de uso Threads, aba **Settings** → painel **User Token Generator**
+→ **Generate Access Token** no seu usuário → autorize.
 
-No repositório: **Settings → Secrets and variables → Actions → New repository
-secret**. Crie os quatro:
+Copie o token gerado. É um texto longo (centenas de caracteres) — é a **única**
+credencial que o bot precisa.
 
-| Nome | Valor |
-|---|---|
-| `X_API_KEY` | API Key |
-| `X_API_SECRET` | API Key Secret |
-| `X_ACCESS_TOKEN` | Access Token |
-| `X_ACCESS_TOKEN_SECRET` | Access Token Secret |
+> O token vale 60 dias. O bot renova sozinho toda segunda-feira (veja
+> [Renovação do token](#renovação-do-token)).
 
-Nunca coloque essas chaves em arquivo do repositório.
-
-### 4. Teste sem publicar
-
-Aba **Actions** → workflow **bot-x-cripto** → **Run workflow** →
-`mode: news`, `dry_run: true` → **Run**.
-
-Abra o log do passo *Rodar o bot*: ele mostra a nota de cada matéria e o texto
-exato que seria publicado. Nada vai para o X.
-
-### 5. Publique de verdade
-
-Mesmo caminho, agora com `dry_run: false`. Confira o post na sua conta.
-
-Feito isso, o agendamento assume sozinho:
-
-| Horário (Brasília) | O que publica |
-|---|---|
-| 08:05 | Resumo de mercado |
-| 09:15, 12:15, 15:15, 18:15 | Até 2 notícias por execução |
-
-Para mudar os horários, edite os `cron` em
-[.github/workflows/bot.yml](.github/workflows/bot.yml) — **lembrando que cron é
-sempre em UTC**, e Brasília é UTC−3 (09:15 BRT = `15 12 * * *`).
-
----
-
-## Rodar na sua máquina (opcional)
+### 4. Testar na sua máquina
 
 ```bash
 cd "/Users/sinvalgomes/Claude Code/x-crypto-bot" && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
-Copie `.env.example` para `.env`, preencha as chaves, e:
+Copie `.env.example` para `.env`, cole o token em `THREADS_ACCESS_TOKEN=` e rode:
+
+```bash
+.venv/bin/python scripts/check_threads.py
+```
+
+Isso confirma a autenticação **sem publicar nada**. Depois, veja o que ele
+publicaria:
 
 ```bash
 .venv/bin/python -m src.main --mode news --dry-run
 ```
 
-Outros comandos:
-
-```bash
-.venv/bin/python scripts/check_auth.py
-```
-
-```bash
-.venv/bin/python -m src.main --mode market --dry-run
-```
+E, quando estiver satisfeito, publique de verdade:
 
 ```bash
 .venv/bin/python -m src.main --mode news --max 1
 ```
+
+### 5. Subir para o GitHub
+
+Crie um repositório vazio no GitHub (sem README) e rode:
+
+```bash
+cd "/Users/sinvalgomes/Claude Code/x-crypto-bot" && git remote add origin https://github.com/SEU-USUARIO/SEU-REPO.git && git push -u origin main
+```
+
+Em **Settings → Secrets and variables → Actions → New repository secret**, crie:
+
+| Nome | Valor |
+|---|---|
+| `THREADS_ACCESS_TOKEN` | o token do passo 3 |
+
+O `.env` está no `.gitignore` — suas credenciais nunca vão para o repositório.
+
+### 6. Ligar o agendamento
+
+Aba **Actions** → workflow **bot-cripto** → **Run workflow** → `mode: news`,
+`dry_run: true` para conferir. Depois rode com `dry_run: false` para valer.
+
+A partir daí o cron assume:
+
+| Horário (Brasília) | O que acontece |
+|---|---|
+| 08:05 | Resumo de mercado |
+| 09:15, 12:15, 15:15, 18:15 | Até 2 notícias por execução |
+| Segunda, 03:30 | Renovação do token |
+
+Para mudar os horários, edite os `cron` em
+[.github/workflows/bot.yml](.github/workflows/bot.yml) — lembrando que cron é
+**sempre em UTC** e Brasília é UTC−3 (09:15 BRT = `15 12 * * *`).
+
+---
+
+## Renovação do token
+
+O token do Threads vale 60 dias. Renovar gera um token **novo**, então não basta
+chamar o endpoint: o valor precisa ser guardado de volta no Secret.
+
+**Automático (recomendado).** Crie um Personal Access Token do GitHub com
+permissão de escrita em Secrets:
+
+1. github.com → **Settings** (da sua conta) → **Developer settings** →
+   **Personal access tokens** → **Fine-grained tokens** → **Generate new token**
+2. Em *Repository access*, escolha o repositório do bot
+3. Em *Permissions → Repository permissions*, marque **Secrets: Read and write**
+4. Gere, copie, e cadastre no repositório como o secret **`GH_PAT`**
+
+Feito isso, toda segunda o bot renova o token e grava o novo sozinho. Você não
+precisa fazer mais nada, para sempre.
+
+**Manual.** Sem o `GH_PAT`, o job de renovação apenas avisa. Nesse caso você
+gera um token novo no portal da Meta e atualiza o secret a cada ~50 dias. Se
+passar de 60 dias sem uso, o token morre de vez e não dá para renovar.
 
 ---
 
@@ -135,17 +148,15 @@ Outros comandos:
 
 Tudo que importa está em [config.yaml](config.yaml) — não é preciso mexer no código.
 
-- **`limits`** — quantos posts por execução, por dia e por mês; espaçamento
-  mínimo entre posts.
+- **`platform`** — `threads` (grátis) ou `x` (pago).
+- **`limits`** — posts por execução, por dia e por mês; espaçamento mínimo.
 - **`news.feeds`** — as fontes. Sete veículos brasileiros vêm ligados. As fontes
-  em inglês (CoinDesk, The Block, Decrypt…) vêm com `enabled: false`, porque no
-  modo template o bot **não traduz** — a manchete sairia em inglês.
-- **`news.keywords`** — o que aumenta a nota de uma matéria (`alta` = +3,
-  `media` = +2, `baixa` = +1).
-- **`news.min_score`** — a nota de corte. Postando pouco? Baixe para 3. Postando
-  coisa irrelevante? Suba para 6.
-- **`news.blocklist`** — manchete que contiver qualquer um desses termos é
-  descartada (publieditorial, "melhores corretoras", previsão de preço…).
+  em inglês vêm com `enabled: false`, porque o bot não traduz — a manchete
+  sairia em inglês.
+- **`news.keywords`** — o que aumenta a nota (`alta` = +3, `media` = +2, `baixa` = +1).
+- **`news.min_score`** — nota de corte. Postando pouco? Baixe para 3. Postando
+  irrelevância? Suba para 6.
+- **`news.blocklist`** — manchete com esses termos é descartada.
 - **`style.hashtag_pool`** — mapa de hashtag → termos que a acionam.
 
 ### Como a nota é calculada
@@ -161,32 +172,29 @@ O log de cada execução mostra a conta inteira, matéria por matéria.
 
 ## Como ele evita repetição
 
-- `state/state.json` guarda o hash de toda URL já vista (21 dias). A URL é
-  normalizada antes — `?utm_source=...` não engana o bot.
+- `state/state.json` guarda o hash de toda URL já vista (21 dias), com a URL
+  normalizada — `?utm_source=...` não engana o bot.
 - Manchetes com **45% ou mais de palavras em comum** com algo publicado nas
   últimas 72h são puladas: é a mesma notícia em outro veículo.
 - No máximo **1 matéria por fonte** em cada execução.
 
-O arquivo é commitado de volta pelo próprio workflow a cada rodada — é assim que
-o bot tem memória mesmo rodando numa máquina nova toda vez.
+O arquivo é commitado de volta pelo próprio workflow — é assim que o bot tem
+memória mesmo rodando numa máquina nova toda vez.
 
 ---
 
-## Modo opcional com a Claude (pago)
+## X (opcional, pago)
 
-No modo padrão o post é a manchete original + link. Com a Claude ligada, ela
-reescreve a manchete como post, em português, e ainda **veta** matérias
-irrelevantes ou publicitárias que passaram pelo filtro.
+Em 6 de fevereiro de 2026 a X encerrou o plano gratuito. Publicar por API passou
+a custar **$0,015 por post**, ou **$0,20 se o post tiver link**. Não existe cota
+grátis.
 
-Isso usa a API da Anthropic, que **é cobrada por uso** (centavos por post, mas
-não é zero). Para ligar:
+O bot continua suportando o X: mude `platform` para `x` no `config.yaml`,
+cadastre os secrets `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN` e
+`X_ACCESS_TOKEN_SECRET`, e carregue créditos no portal da X.
 
-1. Descomente `anthropic>=1.0.0` em `requirements.txt`.
-2. Em `config.yaml`, mude `composer.use_claude` para `true`.
-3. Crie o secret `ANTHROPIC_API_KEY` no GitHub.
-
-Se a chave faltar ou a chamada falhar por qualquer motivo, o bot volta sozinho
-para o template — ele nunca deixa de postar por causa disso.
+Para gastar 13x menos, tire o link do post — edite `_news_template` em
+[src/composer.py](src/composer.py) e remova `article.url` do rodapé.
 
 ---
 
@@ -194,26 +202,28 @@ para o template — ele nunca deixa de postar por causa disso.
 
 | Sintoma | Causa e solução |
 |---|---|
-| `403 Forbidden` ao publicar | Token gerado antes de mudar para *Read and write*. Regenere os Access Tokens. |
-| `403` com texto duplicado | O X recusa dois posts idênticos. Normal; a próxima execução pega outra matéria. |
-| `401 Unauthorized` | Chave copiada errada ou com espaço sobrando no Secret. |
-| `429 Too Many Requests` | Cota do X estourada. O bot para sozinho; espere a virada da janela. |
+| `codigo 190` ou `102` | Token expirado ou revogado. Gere um novo no User Token Generator. |
+| Erro citando `permission` | Falta `threads_content_publish` no app, ou o token foi gerado antes de adicionar a permissão. Adicione e gere o token de novo. |
+| `container criado mas nao publicou` | A Meta ainda estava processando. O bot já tenta 3 vezes; se persistir, é instabilidade do lado deles. |
 | "nada passou no filtro de relevância" | `min_score` alto demais, ou madrugada sem notícia. Baixe `news.min_score`. |
-| O agendamento parou | O GitHub desliga cron de repositório sem atividade por 60 dias. Como o bot commita o `state.json` a cada rodada, isso não deve acontecer — mas se acontecer, é só reativar na aba Actions. |
-| Um feed sumiu do log | O site mudou/derrubou o RSS. O bot ignora e segue com os outros; troque a URL no `config.yaml`. |
+| O agendamento parou | O GitHub desliga cron de repositório sem atividade por 60 dias. Como o bot commita o `state.json`, não deve acontecer; se acontecer, reative na aba Actions. |
+| Um feed sumiu do log | O site mudou ou derrubou o RSS. O bot ignora e segue; troque a URL no `config.yaml`. |
+| `402 Payment Required` | Você está com `platform: x` e sem créditos. Volte para `threads`. |
 
 ---
 
 ## Estrutura
 
 ```
-config.yaml               toda a configuração
-src/sources.py            RSS + CoinGecko + Medo & Ganância
-src/ranker.py             pontuação, filtro e escolha das matérias
-src/composer.py           monta o texto do tweet
-src/publisher.py          publica no X (e o modo dry-run)
-src/state.py              memória: o que já foi postado, cotas
-src/main.py               orquestra tudo
-scripts/check_auth.py     testa as credenciais sem publicar
-.github/workflows/bot.yml agendamento
+config.yaml                    toda a configuração
+src/sources.py                 RSS + CoinGecko + Medo & Ganância
+src/ranker.py                  pontuação, filtro e escolha das matérias
+src/composer.py                monta o texto do post
+src/publisher_threads.py       publica no Threads
+src/publisher.py               publica no X (opcional)
+src/state.py                   memória: o que já foi postado, cotas
+src/main.py                    orquestra tudo
+scripts/check_threads.py       testa o token sem publicar
+scripts/refresh_threads_token.py  renova o token e grava no Secret
+.github/workflows/bot.yml      agendamento
 ```

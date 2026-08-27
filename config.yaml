@@ -2,10 +2,14 @@
 # Configuracao do bot. Edite aqui, nao no codigo.
 # ---------------------------------------------------------------------------
 
+# Onde publicar: "threads" (API gratuita da Meta) ou "x" (pago por post desde
+# fevereiro/2026 -- $0,015 por post, $0,20 se tiver link).
+platform: threads
+
 timezone: America/Sao_Paulo
 
 limits:
-  max_posts_per_month: 400      # o plano FREE do X permite 500/mes; 400 e a margem
+  max_posts_per_month: 400      # trava de seguranca (o Threads permite 250/DIA)
   max_posts_per_run: 2          # quantos posts por execucao (modo news)
   max_posts_per_day: 8          # teto diario (API free do X = 17 posts/24h)
   min_minutes_between_posts: 40 # espacamento minimo entre dois posts
