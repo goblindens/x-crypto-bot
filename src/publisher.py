@@ -13,6 +13,7 @@ class PublishError(RuntimeError):
 class Publisher:
     def __init__(self, dry_run: bool = False):
         self.dry_run = dry_run
+        self.last_error = None   # main() usa isto para decidir o codigo de saida
         self._client = None
 
     def _client_or_fail(self):
@@ -35,7 +36,12 @@ class Publisher:
         return self._client
 
     def post(self, text: str) -> str:
-        """Publica e devolve o id do tweet. Em dry-run so imprime."""
+        """Publica e devolve o id do tweet. Em dry-run so imprime.
+
+        Levanta PublishError em qualquer falha; quem chama registra o erro em
+        self.last_error para o processo terminar com codigo != 0 e a execucao
+        aparecer vermelha no GitHub Actions.
+        """
         if self.dry_run:
             print("\n----- DRY RUN (nada foi publicado) -----")
             print(text)

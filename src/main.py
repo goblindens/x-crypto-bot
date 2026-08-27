@@ -97,6 +97,7 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             tweet_id = publisher.post(text)
         except PublishError as exc:
             print(f"[erro] {exc}")
+            publisher.last_error = str(exc)
             return posted
         state.record_post("news", text, url=article.url, title=article.title, tweet_id=tweet_id)
         posted += 1
@@ -127,6 +128,7 @@ def run_market(config: dict, state: State, publisher: Publisher, force: bool) ->
         tweet_id = publisher.post(text)
     except PublishError as exc:
         print(f"[erro] {exc}")
+        publisher.last_error = str(exc)
         return 0
     state.record_post("market", text, title="resumo de mercado", tweet_id=tweet_id)
     return 1
@@ -159,6 +161,13 @@ def main(argv=None) -> int:
 
     if not args.dry_run:
         state.save()
+
+    if publisher.last_error:
+        # Sai com erro de proposito: assim a execucao fica vermelha no GitHub
+        # Actions e voce fica sabendo que algo quebrou, em vez de silencio.
+        print(f"[bot] fim -- {posted} post(s), COM FALHA: {publisher.last_error}")
+        return 1
+
     print(f"[bot] fim -- {posted} post(s)")
     return 0
 
