@@ -1,0 +1,73 @@
+name: bot-x-cripto
+
+on:
+  schedule:
+    # ATENCAO: os horarios do cron sao SEMPRE em UTC. Brasilia = UTC-3.
+    - cron: "5 11 * * *"                 # 08:05 BRT -- resumo de mercado
+    - cron: "15 12,15,18,21 * * *"       # 09:15, 12:15, 15:15, 18:15 BRT -- noticias
+  workflow_dispatch:                      # botao "Run workflow" na aba Actions
+    inputs:
+      mode:
+        description: "O que publicar"
+        type: choice
+        options: [news, market]
+        default: news
+      dry_run:
+        description: "Somente simular (nao publica)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write     # necessario para o bot salvar state/state.json de volta
+
+concurrency:
+  group: bot-x-cripto
+  cancel-in-progress: false   # nunca cancelar: duas execucoes brigando corrompem o estado
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # necessario para o rebase antes do push
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Rodar o bot
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          # Opcionais -- deixe vazios se nao usar
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 11 * * *' && 'market' || 'news') }}
+          DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: |
+          ARGS="--mode $MODE"
+          if [ "$DRY" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          echo "Executando: python -m src.main $ARGS"
+          python -m src.main $ARGS
+
+      - name: Salvar historico (state.json)
+        run: |
+          if [ -z "$(git status --porcelain state/state.json)" ]; then
+            echo "Nada mudou no estado."
+            exit 0
+          fi
+          git config user.name  "bot-x-cripto"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/state.json
+          git commit -m "chore: atualiza historico de posts [skip ci]"
+          # Se outra execucao commitou nesse meio tempo, rebase antes de empurrar
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

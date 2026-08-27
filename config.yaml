@@ -1,0 +1,184 @@
+# ---------------------------------------------------------------------------
+# Configuracao do bot. Edite aqui, nao no codigo.
+# ---------------------------------------------------------------------------
+
+timezone: America/Sao_Paulo
+
+limits:
+  max_posts_per_month: 400      # o plano FREE do X permite 500/mes; 400 e a margem
+  max_posts_per_run: 2          # quantos posts por execucao (modo news)
+  max_posts_per_day: 8          # teto diario (API free do X = 17 posts/24h)
+  min_minutes_between_posts: 40 # espacamento minimo entre dois posts
+  max_per_source_per_run: 1     # evita 2 manchetes da mesma fonte seguidas
+
+news:
+  max_age_hours: 10             # ignora noticia mais velha que isso
+  min_score: 4                  # nota minima de relevancia para publicar
+  feeds:
+    - name: Portal do Bitcoin
+      url: https://portaldobitcoin.uol.com.br/feed/
+      weight: 4
+      lang: pt
+    - name: Livecoins
+      url: https://livecoins.com.br/feed/
+      weight: 3
+      lang: pt
+    - name: CriptoFacil
+      url: https://www.criptofacil.com/feed/
+      weight: 3
+      lang: pt
+    - name: BeInCrypto Brasil
+      url: https://br.beincrypto.com/feed/
+      weight: 3
+      lang: pt
+    - name: Money Times Cripto
+      url: https://www.moneytimes.com.br/tag/criptomoedas/feed/
+      weight: 3
+      lang: pt
+    - name: InfoMoney
+      url: https://www.infomoney.com.br/feed/
+      weight: 2
+      lang: pt
+    - name: Exame Invest
+      url: https://exame.com/invest/feed/
+      weight: 2
+      lang: pt
+    # ---------------------------------------------------------------------
+    # Fontes em ingles: DESLIGADAS por padrao. No modo template o bot nao
+    # traduz -- a manchete sairia em ingles. Ligue (enabled: true) se voce
+    # quiser postar em ingles ou se ativar o composer com a Claude.
+    # ---------------------------------------------------------------------
+    - name: CoinDesk
+      url: https://www.coindesk.com/arc/outboundfeeds/rss/
+      weight: 4
+      lang: en
+      enabled: false
+    - name: Cointelegraph
+      url: https://cointelegraph.com/rss
+      weight: 3
+      lang: en
+      enabled: false
+    - name: Decrypt
+      url: https://decrypt.co/feed
+      weight: 3
+      lang: en
+      enabled: false
+    - name: The Block
+      url: https://www.theblock.co/rss.xml
+      weight: 4
+      lang: en
+      enabled: false
+    - name: Bitcoin Magazine
+      url: https://bitcoinmagazine.com/feed
+      weight: 2
+      lang: en
+      enabled: false
+
+  # Palavras que aumentam a nota (peso entre parenteses)
+  keywords:
+    alta:      # +3
+      - bitcoin
+      - ethereum
+      - etf
+      - sec
+      - federal reserve
+      - fed
+      - cpi
+      - halving
+      - regulamenta
+      - regulation
+      - banco central
+      - selic
+      - juros
+      - hackeado
+      - hacker
+      - invasao
+      - liquida
+    media:     # +2
+      - solana
+      - xrp
+      - stablecoin
+      - usdt
+      - usdc
+      - binance
+      - coinbase
+      - blackrock
+      - tesouro
+      - ibovespa
+      - dolar
+      - drex
+      - tokeniza
+    baixa:     # +1
+      - defi
+      - nft
+      - staking
+      - layer 2
+      - mineracao
+      - mining
+      - altcoin
+      - carteira
+      - wallet
+
+  # Se a manchete contiver qualquer um destes termos, e descartada
+  blocklist:
+    - presale
+    - pre-venda
+    - patrocinado
+    - sponsored
+    - press release
+    - promoted
+    - airdrop gratis
+    - como comprar
+    - price prediction
+    - previsao de preco
+    - melhores corretoras
+    - cassino
+    - apostas
+
+market:
+  # ids do CoinGecko
+  coins:
+    - id: bitcoin
+      symbol: BTC
+    - id: ethereum
+      symbol: ETH
+    - id: solana
+      symbol: SOL
+    - id: ripple
+      symbol: XRP
+  vs_currency: usd
+  include_fear_greed: true
+  include_dominance: true
+
+style:
+  language: pt-BR
+  # Como o bot deve escrever. Isso vai direto no prompt da Claude.
+  voice: >-
+    Direto, informativo e sobrio. Zero hype, zero emoji em excesso, zero
+    recomendacao de compra ou venda. Escreve como um jornalista de mercado
+    brasileiro: primeiro o fato, depois o numero ou o contexto que importa.
+  hashtags_max: 2
+  hashtag_default: "#Cripto"     # sempre entra quando sobra espaco
+  # tag -> termos que a acionam (procurados no texto do post)
+  hashtag_pool:
+    "#Bitcoin":  [bitcoin, btc]
+    "#Ethereum": [ethereum, ether, eth]
+    "#Solana":   [solana, sol]
+    "#XRP":      [xrp, ripple]
+    "#ETF":      [etf]
+    "#Economia": [selic, juros, inflacao, banco central, dolar, ibovespa, fed]
+  disclaimer_every_n_posts: 0   # 0 = desligado
+
+# ---------------------------------------------------------------------------
+# Redacao dos posts
+# ---------------------------------------------------------------------------
+composer:
+  # false = template puro em Python. Custo ZERO, nenhuma chave de API.
+  # true  = a Claude reescreve a manchete como post (exige ANTHROPIC_API_KEY,
+  #         que e paga). Se a chave faltar ou a chamada falhar, o bot volta
+  #         sozinho para o template -- nunca deixa de postar por isso.
+  use_claude: false
+
+anthropic:          # so usado quando composer.use_claude = true
+  model: claude-opus-5
+  effort: low
