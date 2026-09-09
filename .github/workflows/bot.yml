@@ -5,7 +5,7 @@ on:
     # ATENCAO: cron do GitHub e SEMPRE em UTC. Brasilia = UTC-3.
     - cron: "5 11 * * *"                 # 08:05 BRT -- resumo de mercado
     - cron: "15 12,15,18,21 * * *"       # 09:15, 12:15, 15:15, 18:15 BRT -- noticias
-    - cron: "30 16 * * 1"                # segunda 13:30 BRT -- ranking da semana (imagem)
+    - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
     - cron: "30 6 * * 1"                 # segunda 03:30 BRT -- renova o token do Threads
   workflow_dispatch:
     inputs:
@@ -58,7 +58,7 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 11 * * *' && 'market' || github.event.schedule == '30 16 * * 1' && 'ranking' || 'news') }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 11 * * *' && 'market' || github.event.schedule == '20 16 * * *' && 'ranking' || 'news') }}
           DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
         run: |
           ARGS="--mode $MODE"
