@@ -147,9 +147,53 @@ def run_market(config: dict, state: State, publisher: Publisher, force: bool) ->
     return 1
 
 
+def run_ranking(config: dict, state: State, publisher, force: bool, image_url: str, caption_file: str) -> int:
+    """Publica a arte do ranking da semana (imagem + legenda) no Threads.
+
+    A imagem e a legenda chegam pelo repositorio (o Mac manda; ver
+    ~/okx/ranking/enviar_threads.sh). So funciona no Threads -- e o unico
+    publicador com suporte a imagem aqui.
+    """
+    if not hasattr(publisher, "post_image"):
+        print("[ranking] esta plataforma nao publica imagem; use platform: threads")
+        return 0
+    if not (force or publisher.dry_run) and state.posted_kind_today("ranking"):
+        print("[ranking] ranking ja publicado nas ultimas 20h")
+        return 0
+    blocked = quota_gate(state, config, force or publisher.dry_run)
+    if blocked:
+        print(f"[quota] parando: {blocked}")
+        return 0
+    if not image_url:
+        print("[ranking] falta --image-url (endereco publico da imagem)")
+        return 0
+    try:
+        with open(caption_file, "r", encoding="utf-8") as fh:
+            text = fh.read().strip()
+    except OSError as exc:
+        print(f"[ranking] nao consegui ler a legenda {caption_file}: {exc}")
+        return 0
+    if not text:
+        print("[ranking] legenda vazia; nada a publicar")
+        return 0
+    if not fits(text):
+        print(f"[ranking] legenda com {tweet_length(text)} caracteres; descartando")
+        return 0
+    try:
+        post_id = publisher.post_image(image_url, text)
+    except PublishError as exc:
+        print(f"[erro] {exc}")
+        publisher.last_error = str(exc)
+        return 0
+    state.record_post("ranking", text, url=image_url, title="ranking da semana", tweet_id=post_id)
+    return 1
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Bot de noticias de cripto para o X")
-    parser.add_argument("--mode", choices=["news", "market"], default="news")
+    parser.add_argument("--mode", choices=["news", "market", "ranking"], default="news")
+    parser.add_argument("--image-url", default="", help="modo ranking: URL https publica da imagem")
+    parser.add_argument("--caption-file", default="artes/ranking.txt", help="modo ranking: arquivo com a legenda")
     parser.add_argument("--dry-run", action="store_true", help="mostra o post sem publicar")
     parser.add_argument("--force", action="store_true", help="ignora espacamento e teto diario")
     parser.add_argument("--max", type=int, default=None, help="maximo de posts nesta execucao")
@@ -168,6 +212,8 @@ def main(argv=None) -> int:
 
     if args.mode == "market":
         posted = run_market(config, state, publisher, args.force)
+    elif args.mode == "ranking":
+        posted = run_ranking(config, state, publisher, args.force, args.image_url, args.caption_file)
     else:
         limit = args.max or int(config["limits"].get("max_posts_per_run", 2))
         posted = run_news(config, state, publisher, args.force, limit)

@@ -123,3 +123,47 @@ class ThreadsPublisher:
             return post_id
 
         raise PublishError(f"container criado mas nao publicou: {last_exc}")
+
+    def post_image(self, image_url: str, text: str) -> str:
+        """Publica uma IMAGEM com legenda.
+
+        A API do Threads nao aceita upload de arquivo: a imagem precisa estar
+        num endereco publico (https), de onde a Meta baixa. Por isso o Mac
+        manda o PNG pro repositorio e o workflow passa a URL "raw" do GitHub.
+        JPEG ou PNG, ate 8 MB, proporcao entre 10:1 e 1:10.
+        """
+        if not image_url.startswith("https://"):
+            raise PublishError(f"image_url precisa ser https publico: {image_url}")
+        if self.dry_run:
+            print("\n----- DRY RUN (nada foi publicado) -----")
+            print(f"[imagem] {image_url}")
+            print(text)
+            print("----------------------------------------\n")
+            return "dry-run"
+
+        uid = self.user_id()
+        container = self._post(f"/{uid}/threads",
+                               {"media_type": "IMAGE", "image_url": image_url, "text": text})
+        creation_id = container.get("id")
+        if not creation_id:
+            raise PublishError(f"container sem id: {container}")
+
+        # Imagem demora mais que texto: a Meta baixa e processa antes de liberar.
+        # Consultamos o status ate ficar FINISHED (a doc sugere ~30 s de espera).
+        last = ""
+        for espera in (5, 10, 15, 30, 30):
+            time.sleep(espera)
+            st = self._get(f"/{creation_id}", {"fields": "status,error_message"})
+            last = st.get("status", "")
+            if last == "FINISHED":
+                break
+            if last == "ERROR":
+                raise PublishError(f"a Meta recusou a imagem: {st.get('error_message', st)}")
+            print(f"[threads] imagem ainda processando ({last or 'sem status'})...")
+        if last != "FINISHED":
+            raise PublishError(f"imagem nao ficou pronta a tempo (status {last})")
+
+        published = self._post(f"/{uid}/threads_publish", {"creation_id": creation_id})
+        post_id = str(published.get("id", ""))
+        print(f"[threads] imagem publicada: https://www.threads.net/@_/post/{post_id}")
+        return post_id
