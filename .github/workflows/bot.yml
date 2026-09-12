@@ -7,8 +7,6 @@ on:
     - cron: "15 12,15,18,21 * * *"       # 09:15, 12:15, 15:15, 18:15 BRT -- noticias
     - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
     - cron: "30 6 * * 1"                 # segunda 03:30 BRT -- renova o token do Threads
-  push:                                  # mudou este arquivo? roda a renovacao na hora (prova o GH_PAT sem clicar)
-    paths: [".github/workflows/bot.yml"]
   workflow_dispatch:
     inputs:
       mode:
@@ -33,7 +31,7 @@ env:
 
 jobs:
   publicar:
-    if: github.event_name != 'push' && github.event.schedule != '30 6 * * 1' && inputs.mode != 'refresh'
+    if: github.event.schedule != '30 6 * * 1' && inputs.mode != 'refresh'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -87,7 +85,7 @@ jobs:
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
   renovar-token:
-    if: github.event_name == 'push' || github.event.schedule == '30 6 * * 1' || inputs.mode == 'refresh'
+    if: github.event.schedule == '30 6 * * 1' || inputs.mode == 'refresh'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -102,3 +100,10 @@ jobs:
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           GH_PAT: ${{ secrets.GH_PAT }}
         run: python scripts/refresh_threads_token.py
+      - name: Avisar o Healthchecks (silencio = alerta no celular)
+        if: always()
+        run: |
+          if [ -n "${{ vars.HC_GITHUB }}" ]; then
+            SUFIXO=""; [ "${{ job.status }}" = "success" ] || SUFIXO="/fail"
+            curl -fsS -m 10 --retry 3 "${{ vars.HC_GITHUB }}$SUFIXO" >/dev/null || true
+          fi
