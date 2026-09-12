@@ -1,5 +1,18 @@
 {
-  "monthly": {},
-  "posts": [],
-  "seen": {}
+  "monthly": {
+    "2026-09": 1
+  },
+  "posts": [
+    {
+      "kind": "news",
+      "text": "₿ iPhone a R$ 30 mil? Em Bitcoin, novo celular da Apple está mais barato que nunca\n\nComparativo mostra que o iPhone ficou muito mais caro em reais e dólares desde 2010, mas caiu de 11.980 BTC para apenas 0,015 BTC O post iPhone a R$ 30 mil?\n\nPortal do Bitcoin\nhttps://portaldobitcoin.uol.com.br/iphone-a-r-30-mil-em-bitcoin-novo-celular-da-apple-esta-mais-barato-que-nunca/\n\n#Bitcoin #Cripto",
+      "title": "iPhone a R$ 30 mil? Em Bitcoin, novo celular da Apple está mais barato que nunca",
+      "ts": "2026-09-12T23:01:38.878639+00:00",
+      "tweet_id": "18101559104365433",
+      "url": "https://portaldobitcoin.uol.com.br/iphone-a-r-30-mil-em-bitcoin-novo-celular-da-apple-esta-mais-barato-que-nunca/"
+    }
+  ],
+  "seen": {
+    "38e914194b2d6327": "2026-09-12T23:01:38.878682+00:00"
+  }
 }
