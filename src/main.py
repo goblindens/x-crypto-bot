@@ -186,12 +186,25 @@ def run_ranking(config: dict, state: State, publisher, force: bool, image_url: s
         publisher.last_error = str(exc)
         return 0
     state.record_post("ranking", text, url=image_url, title="ranking da semana", tweet_id=post_id)
+    # Se existir artes/ranking_resposta.txt, vai como 1a resposta (e onde o link entra).
+    resposta_file = os.path.join(os.path.dirname(caption_file) or ".", "ranking_resposta.txt")
+    if os.path.exists(resposta_file) and hasattr(publisher, "post_reply") and post_id != "dry-run":
+        try:
+            resposta = open(resposta_file, "r", encoding="utf-8").read().strip()
+            if resposta:
+                publisher.post_reply(resposta, post_id)
+        except (OSError, PublishError) as exc:
+            print(f"[ranking] resposta nao publicada: {exc}")
     return 1
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Bot de noticias de cripto para o X")
-    parser.add_argument("--mode", choices=["news", "market", "ranking"], default="news")
+    parser.add_argument("--mode", choices=["news", "market", "ranking", "espelho"], default="news")
+    parser.add_argument("--seed", action="store_true", help="modo espelho: marca os posts atuais do Instagram como vistos, sem publicar")
+    parser.add_argument("--show", type=int, default=0, help="modo espelho: so mostra como ficariam os ultimos N posts do Instagram")
+    parser.add_argument("--repeat", type=int, default=1, help="modo espelho: repete a verificacao N vezes na mesma execucao")
+    parser.add_argument("--every", type=int, default=40, help="modo espelho: segundos entre as repeticoes")
     parser.add_argument("--image-url", default="", help="modo ranking: URL https publica da imagem")
     parser.add_argument("--caption-file", default="artes/ranking.txt", help="modo ranking: arquivo com a legenda")
     parser.add_argument("--dry-run", action="store_true", help="mostra o post sem publicar")
@@ -199,6 +212,13 @@ def main(argv=None) -> int:
     parser.add_argument("--max", type=int, default=None, help="maximo de posts nesta execucao")
     parser.add_argument("--config", default=CONFIG_PATH)
     args = parser.parse_args(argv)
+
+    # Windows abre o console em cp1252 e quebra em qualquer emoji da legenda.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
 
     load_dotenv()
     config = load_config(args.config)
@@ -214,11 +234,30 @@ def main(argv=None) -> int:
         posted = run_market(config, state, publisher, args.force)
     elif args.mode == "ranking":
         posted = run_ranking(config, state, publisher, args.force, args.image_url, args.caption_file)
+    elif args.mode == "espelho":
+        # Tempo real (decisao dele, 12/09/2026): a tarefa da VPS chama isto a
+        # cada 2 min; com --repeat 3 --every 40 o Instagram e olhado a cada 40 s
+        # sem mexer na tarefa. O estado e salvo a cada volta.
+        from .espelho import run_espelho
+        from .fila import run_fila
+        import time
+        posted = 0
+        fila_path = os.path.join(ROOT, "state", "fila.json")
+        for i in range(max(1, args.repeat)):
+            if i:
+                time.sleep(args.every)
+            posted += run_espelho(config, state, publisher, args.force, seed=args.seed, show=args.show)
+            if not args.show and not args.seed and not publisher.last_error:
+                posted += run_fila(fila_path, state, publisher, args.force)
+            if not args.dry_run and not args.show:
+                state.save()
+            if publisher.last_error or args.show or args.seed:
+                break
     else:
         limit = args.max or int(config["limits"].get("max_posts_per_run", 2))
         posted = run_news(config, state, publisher, args.force, limit)
 
-    if not args.dry_run:
+    if not args.dry_run and not args.show:
         state.save()
 
     if publisher.last_error:

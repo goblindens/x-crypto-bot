@@ -124,6 +124,30 @@ class ThreadsPublisher:
 
         raise PublishError(f"container criado mas nao publicou: {last_exc}")
 
+    def post_reply(self, text: str, reply_to_id: str) -> str:
+        """Responde um post nosso (e onde vai o link: no corpo derruba o alcance)."""
+        if self.dry_run:
+            print(f"\n----- DRY RUN (resposta a {reply_to_id}) -----\n{text}\n----------------------------------------\n")
+            return "dry-run"
+        uid = self.user_id()
+        container = self._post(f"/{uid}/threads",
+                               {"media_type": "TEXT", "text": text, "reply_to_id": reply_to_id})
+        creation_id = container.get("id")
+        if not creation_id:
+            raise PublishError(f"container da resposta sem id: {container}")
+        last_exc = None
+        for espera in (2, 8, 20):
+            time.sleep(espera)
+            try:
+                published = self._post(f"/{uid}/threads_publish", {"creation_id": creation_id})
+            except PublishError as exc:
+                last_exc = exc
+                continue
+            post_id = str(published.get("id", ""))
+            print(f"[threads] resposta publicada: {post_id}")
+            return post_id
+        raise PublishError(f"resposta criada mas nao publicou: {last_exc}")
+
     def post_image(self, image_url: str, text: str) -> str:
         """Publica uma IMAGEM com legenda.
 

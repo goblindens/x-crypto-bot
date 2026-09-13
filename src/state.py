@@ -27,6 +27,9 @@ class State:
                 self.data["seen"] = loaded.get("seen", {}) or {}
                 self.data["posts"] = loaded.get("posts", []) or []
                 self.data["monthly"] = loaded.get("monthly", {}) or {}
+                # blocos de outros modos (ex.: "espelho") sobrevivem ao load/save
+                for key, value in loaded.items():
+                    self.data.setdefault(key, value)
             except (json.JSONDecodeError, OSError) as exc:
                 print(f"[state] arquivo ilegivel ({exc}); comecando do zero")
 

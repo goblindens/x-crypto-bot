@@ -15,6 +15,25 @@ limits:
   min_minutes_between_posts: 40 # espacamento minimo entre dois posts
   max_per_source_per_run: 1     # evita 2 manchetes da mesma fonte seguidas
 
+# ---------------------------------------------------------------------------
+# Espelho Instagram -> X (modo "espelho"). Roda na VPS de carona na tarefa do
+# ig2yt. Regras medidas em 12/09/2026 -- ver o cofre, x-o-que-funciona-no-nicho.
+# ---------------------------------------------------------------------------
+espelho:
+  lookback: 10                  # quantos posts recentes do Instagram olhar por vez
+  max_per_run: 1                # no maximo 1 espelhado por execucao (a tarefa roda a cada 2 min)
+  reels: true                   # Reels/videos tambem (4 dos 6 ultimos posts dele sao Reels)
+  max_caption_chars: 120        # so a primeira linha da legenda, cortada aqui
+  caps_words_to_skip: 3         # 3+ palavras em CAIXA ALTA = anuncio; nao espelha
+  skip_terms: ["🚨"]            # sirene = post de parceria; nao espelha
+  # TEMPO REAL (decisao dele, 12/09/2026): postou no Instagram, postou no X.
+  # 0 = sem espacamento; windows vazio = qualquer hora. Fica so o teto diario
+  # (limits.max_posts_per_day) como seguranca. Os horarios que rendem mais na
+  # conta dele (07h, 12-14h, 19-21h) continuam anotados no cofre, se um dia
+  # quiser voltar a segurar: windows: ["07:00-07:59","12:00-14:59","19:00-21:59"]
+  min_minutes_between_posts: 0
+  windows: []
+
 news:
   max_age_hours: 10             # ignora noticia mais velha que isso
   min_score: 4                  # nota minima de relevancia para publicar
