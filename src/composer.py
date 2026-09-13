@@ -87,7 +87,9 @@ def _news_template(article, config: dict) -> str:
     emoji = pick_emoji(article.title + " " + article.summary)
     hashtags = pick_hashtags(article.title, config)
 
-    tail = f"\n\n{article.source}\n{article.url}"
+    # Regra dele (13/09/2026): noticia sai so com o NOME da fonte, nunca com o
+    # link. Link, so o da comunidade (e na 1a resposta).
+    tail = f"\n\nvia {article.source}"
     if hashtags:
         tail += f"\n\n{hashtags}"
     reserved = tweet_length(tail)
@@ -222,7 +224,7 @@ def _compose_news_with_claude(article, config: dict):
         return None
 
     hashtags = pick_hashtags(body or article.title, config)
-    tail = f"\n\n{article.url}"
+    tail = f"\n\nvia {article.source}"      # so o nome da fonte, sem link (regra dele)
     if hashtags:
         tail += f"\n\n{hashtags}"
     body = truncate_to_fit(body, reserved=tweet_length(tail))
