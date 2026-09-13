@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 2
+    "2026-09": 3
   },
   "posts": [
     {
@@ -18,9 +18,18 @@
       "ts": "2026-09-13T14:54:13.331860+00:00",
       "tweet_id": "18018575600870106",
       "url": ""
+    },
+    {
+      "kind": "news",
+      "text": "🚨 PF aponta fraude de R$ 17 bilhões em operações entre Master e BRB\n\nO Master vendeu carteiras de crédito fictícias para o BRB, banco estatal do Distrito Federal The post PF aponta fraude de R$ 17 bilhões em operações entre Master e BRB appeared first on InfoMoney .\n\nInfoMoney\nhttps://www.infomoney.com.br/politica/pf-aponta-fraude-de-r-17-bilhoes-em-operacoes-entre-master-e-brb/\n\n#Cripto",
+      "title": "PF aponta fraude de R$ 17 bilhões em operações entre Master e BRB",
+      "ts": "2026-09-13T16:13:13.905409+00:00",
+      "tweet_id": "17958216639229494",
+      "url": "https://www.infomoney.com.br/politica/pf-aponta-fraude-de-r-17-bilhoes-em-operacoes-entre-master-e-brb/"
     }
   ],
   "seen": {
-    "38e914194b2d6327": "2026-09-12T23:01:38.878682+00:00"
+    "38e914194b2d6327": "2026-09-12T23:01:38.878682+00:00",
+    "521d22fa6710b935": "2026-09-13T16:13:13.905460+00:00"
   }
 }
