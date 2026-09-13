@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .util import fold, has_term, now_utc, similarity
 
-WEIGHTS = {"alta": 3, "media": 2, "baixa": 1}
+WEIGHTS = {"parceiros": 6, "alta": 3, "media": 2, "baixa": 1}   # parceiros dele (OKX, Ledger, Kraken) furam a fila
 SIMILARITY_CUTOFF = 0.45  # acima disso, tratamos como a mesma noticia
 
 
@@ -22,13 +22,22 @@ def score_article(article, config: dict) -> None:
     score += weight
     reasons.append(f"fonte {article.source} (+{weight})")
 
+    bateu_palavra = False
     for tier, words in (news_cfg.get("keywords") or {}).items():
         bonus = WEIGHTS.get(tier, 1)
         for word in words:
             if has_term(haystack, word):
                 score += bonus
                 reasons.append(f"'{word}' (+{bonus})")
+                if tier != "baixa":
+                    bateu_palavra = True
                 break  # so uma palavra por faixa, senao um texto longo infla a nota
+
+    # "Apenas relevantes" (regra dele, 13/09/2026): sem assunto forte (parceiro,
+    # alta ou media), a manchete nao entra, por mais recente ou curta que seja.
+    if news_cfg.get("exigir_assunto", False) and not bateu_palavra:
+        score = -50
+        reasons.append("sem assunto relevante (parceiro/alta/media)")
 
     if article.published:
         age_h = (now_utc() - article.published).total_seconds() / 3600

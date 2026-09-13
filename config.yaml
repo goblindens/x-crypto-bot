@@ -36,7 +36,8 @@ espelho:
 
 news:
   max_age_hours: 10             # ignora noticia mais velha que isso
-  min_score: 4                  # nota minima de relevancia para publicar
+  min_score: 8                  # nota minima de relevancia para publicar (era 4; "apenas relevantes", 13/09/2026)
+  exigir_assunto: true          # sem palavra de parceiro/alta/media, nao publica
   feeds:
     - name: Portal do Bitcoin
       url: https://portaldobitcoin.uol.com.br/feed/
@@ -99,6 +100,10 @@ news:
 
   # Palavras que aumentam a nota (peso entre parenteses)
   keywords:
+    parceiros: # +6 -- parcerias dele (13/09/2026): quando sai algo sobre eles, vai na frente
+      - okx
+      - ledger
+      - kraken
     alta:      # +3
       - bitcoin
       - ethereum
@@ -154,6 +159,25 @@ news:
     - como comprar
     - price prediction
     - previsao de preco
+    # previsao de preco disfarcada (regra dele: nunca prever preco) -- 13/09/2026
+    - pode saltar
+    - pode subir
+    - pode disparar
+    - pode cair
+    - pode chegar a
+    - vai a us$
+    - vai a r$
+    - ate 2027
+    - ate 2028
+    - ate 2030
+    - projecao
+    - preco-alvo
+    - alvo de preco
+    - proximo alvo
+    - analista preve
+    - analistas preveem
+    - guia de
+    - ouro de tolo
     - melhores corretoras
     - cassino
     - apostas
