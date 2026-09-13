@@ -5,5 +5,5 @@ tweepy==4.14.0
 # Python 3.13 removeu o imghdr que o tweepy 4.14 importa (VPS de Toquio roda 3.13)
 standard-imghdr; python_version >= "3.13"
 python-dateutil==2.9.0.post0
-# anthropic>=1.0.0   # OPCIONAL e PAGO: so instale se ligar composer.use_claude
+anthropic>=0.60   # ligado em 13/09/2026 (composer.use_claude: true) -- traduz e resume; pago, centavos por post
 PyNaCl==1.5.0

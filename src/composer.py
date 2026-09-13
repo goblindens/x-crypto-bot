@@ -58,8 +58,21 @@ def compose_news(article, config: dict) -> str:
     text = None
     if _claude_enabled(config):
         text = _compose_news_with_claude(article, config)
+    if text == "SKIP":
+        return text
     if not text:
+        if article.lang != "pt":
+            # sem a Claude nao ha traducao; manchete em ingles nao sai (regra: conteudo em PT)
+            print(f"[composer] sem traducao disponivel para '{article.title[:50]}' -- pulando")
+            return "SKIP"
         text = _news_template(article, config)
+    # Fluxo parceiro (13/09/2026): OKX/Kraken/Ledger ganham a chamada pra comunidade.
+    if getattr(article, "parceiro", False):
+        chamada = (config.get("parceiros") or {}).get("chamada", "").strip()
+        if chamada:
+            candidato = text + "\n\n" + chamada
+            if fits(candidato):
+                text = candidato
     return text
 
 

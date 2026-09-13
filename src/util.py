@@ -99,6 +99,10 @@ def has_term(haystack_folded: str, term: str) -> bool:
     """Casa `term` como inicio de palavra: 'hack' nao casa com 'hackathon',
     mas 'regulament' casa com 'regulamentacao'. Evita falso positivo bobo."""
     pattern = r"(?<![a-z0-9])" + re.escape(fold(term))
+    if len(fold(term)) <= 4:
+        # termo curto ('fed', 'sec', 'etf') so vale como palavra inteira:
+        # 'fed' nao pode casar com 'federal' (13/09: manchete de politica passou por isso)
+        pattern += r"(?![a-z0-9])"
     return re.search(pattern, haystack_folded) is not None
 
 

@@ -106,14 +106,28 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             state.mark_seen(article.url)
             continue
 
+        parc_cfg = config.get("parceiros") or {}
+        eh_parceiro = bool(getattr(article, "parceiro", False))
+        if eh_parceiro and not parc_cfg.get("ligado", False) and not publisher.dry_run:
+            # MODO MOSTRAR: escreve no log e nao publica (2 dias de prova, decisao dele 13/09)
+            print("[parceiro] MODO MOSTRAR (nao publicado) ----------------\n" + text +
+                  "\n  [resposta] " + parc_cfg.get("resposta", "") + "\n----------------------------------------")
+            state.mark_seen(article.url)
+            continue
+
         try:
             tweet_id = publisher.post(text)
         except PublishError as exc:
             print(f"[erro] {exc}")
             publisher.last_error = str(exc)
             return posted
-        state.record_post("news", text, url=article.url, title=article.title, tweet_id=tweet_id)
+        state.record_post("parceiro" if eh_parceiro else "news", text, url=article.url, title=article.title, tweet_id=tweet_id)
         posted += 1
+        if eh_parceiro and parc_cfg.get("resposta") and hasattr(publisher, "post_reply") and tweet_id != "dry-run":
+            try:
+                publisher.post_reply(parc_cfg["resposta"], tweet_id)
+            except PublishError as exc:
+                print(f"[parceiro] resposta com o link nao saiu: {exc}")
 
     return posted
 

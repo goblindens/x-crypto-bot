@@ -25,6 +25,7 @@ class Article:
     summary: str = ""
     score: int = 0
     reasons: list = field(default_factory=list)
+    parceiro: bool = False      # OKX / Kraken / Ledger: sai com chamada pra comunidade + link na resposta
 
 
 # --------------------------------------------------------------------- RSS
@@ -53,6 +54,7 @@ def fetch_feed(feed_cfg: dict) -> list:
                 lang=feed_cfg.get("lang", "pt"),
                 published=_entry_time(entry),
                 summary=_clean_summary(entry.get("summary", "")),
+                parceiro=bool(feed_cfg.get("parceiro", False)),
             )
         )
     return articles
@@ -72,7 +74,38 @@ def _clean_summary(raw: str) -> str:
     import re
     text = re.sub(r"<[^>]+>", " ", raw or "")
     text = html.unescape(text)
-    return re.sub(r"\s+", " ", text).strip()[:600]
+    text = re.sub(r"\s+", " ", text).strip()
+    # rodape de feed WordPress ("O post X apareceu primeiro em Y." / "The post X appeared first on Y.")
+    text = re.sub(r"\s*(O post|The post)\s.*?(apareceu primeiro em|appeared first on)\s.*?(\.|$)", "", text, flags=re.I).strip()
+    return text[:600]
+
+
+def fetch_okx_anuncios(cfg: dict) -> list:
+    """Anuncios oficiais da OKX (pagina PT-BR). Nao tem RSS: a lista vem num JSON
+    embutido na pagina (appState -> sectionData.articleList.list). Manutencao,
+    delist e migracao sao pulados pelos termos do config."""
+    import json
+    import re
+    from datetime import datetime, timezone
+    url = cfg.get("url", "https://www.okx.com/pt-br/help/section/announcements-latest-announcements")
+    try:
+        html = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": "Mozilla/5.0 (Macintosh)"}).text
+        m = re.search(r'id="appState">(.*?)</script>', html, re.S)
+        lista = json.loads(m.group(1))["appContext"]["initialProps"]["sectionData"]["articleList"]["list"]
+    except Exception as exc:
+        print(f"[okx] nao consegui ler os anuncios: {exc}")
+        return []
+    pular = [fold(t) for t in cfg.get("pular_termos", [])]
+    out = []
+    for it in lista:
+        titulo = (it.get("title") or "").strip()
+        if not titulo or any(p in fold(titulo) for p in pular):
+            continue
+        ts = it.get("publishTime")
+        pub = datetime.fromtimestamp(ts / 1000, tz=timezone.utc) if ts else None
+        out.append(Article(title=titulo, url=f"https://www.okx.com/pt-br/help/{it.get('slug', it.get('id', ''))}",
+                           source="OKX", lang="pt", published=pub, summary="", parceiro=True))
+    return out
 
 
 def collect_news(config: dict) -> list:
@@ -88,6 +121,13 @@ def collect_news(config: dict) -> list:
             if article.published and article.published < cutoff:
                 continue
             out.append(article)
+    okx_cfg = config.get("okx_anuncios") or {}
+    if okx_cfg.get("enabled"):
+        # anuncio oficial vale por 48h: a OKX publica poucos e a pagina nao e feed
+        cutoff_okx = now_utc() - timedelta(hours=48)
+        anuncios = [a for a in fetch_okx_anuncios(okx_cfg) if a.published and a.published >= cutoff_okx]
+        print(f"[okx] {len(anuncios)} anuncio(s) oficial(is) nas ultimas 48h")
+        out += anuncios
     print(f"[rss] {len(out)} materias dentro da janela de {news_cfg.get('max_age_hours')}h")
     return out
 
