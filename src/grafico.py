@@ -132,9 +132,9 @@ def desenhar(pts, meta, saida: str, subtitulo: str = "") -> dict:
     for i in (0, len(pts) // 2, len(pts) - 1):
         d.text((X(i), gy1 + 6), pts[i][0].astimezone(BR).strftime("%d/%m"), font=_fonte(20), fill=CINZA, anchor="ma")
     # rodape
-    quando = datetime.now(BR).strftime("%d/%m/%Y %H:%M")
-    d.text((60, H - 100), f"Fonte: {meta['fonte']}  ·  {quando} BRT", font=_fonte(24), fill=CINZA)
-    d.text((60, H - 62), "Dado público, conferido na hora. Não é recomendação de investimento.", font=_fonte(20), fill=(90, 100, 90))
+    quando = datetime.now(BR).strftime("%d/%m/%Y %H:%M")          # so pro registro (nao vai na imagem)
+    d.text((60, H - 100), f"Fonte: {meta['fonte']}", font=_fonte(24), fill=CINZA)
+    d.text((60, H - 62), "Não é recomendação de investimento.", font=_fonte(20), fill=(90, 100, 90))
     x_dir = W - 60
     try:                                                     # QR do grupo (pedido dele, 14/09), pequeno, ao lado da logo
         from .qr import imagem as qr_imagem

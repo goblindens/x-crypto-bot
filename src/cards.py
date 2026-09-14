@@ -29,10 +29,10 @@ _NUM = re.compile(r"(US\$|R\$|\$|€)?\s?(\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d+)?)
 
 
 def _rodape(d, fonte: str, quando: str | None = None):
-    quando = quando or datetime.now(BR).strftime("%d/%m/%Y %H:%M")
+    # Regra dele (14/09): na imagem vai a FONTE; horario e "dado conferido" ficam de fora.
     d.line([(60, H - 150), (W - 60, H - 150)], fill=LINHA, width=2)
-    d.text((60, H - 125), f"Fonte: {fonte}", font=_fonte(28), fill=CINZA)
-    d.text((60, H - 85), f"{quando} BRT  ·  dado conferido na hora  ·  não é recomendação de investimento", font=_fonte(20), fill=(90, 100, 90))
+    d.text((60, H - 120), f"Fonte: {fonte}", font=_fonte(28), fill=CINZA)
+    d.text((60, H - 80), "Não é recomendação de investimento.", font=_fonte(20), fill=(90, 100, 90))
 
 
 def _logo(img, d):
@@ -42,8 +42,8 @@ def _logo(img, d):
         from .qr import imagem as qr_imagem
         qr = qr_imagem(tamanho=124)
         if qr is not None:
-            img.paste(qr, (x_dir - 124, H - 140))
-            d.text((x_dir - 62, H - 12), "grupo", font=_fonte(16), fill=CINZA, anchor="ma")
+            img.paste(qr, (x_dir - 124, H - 146))
+            d.text((x_dir - 62, H - 18), "grupo do WhatsApp", font=_fonte(14), fill=CINZA, anchor="ma")
             x_dir -= 124 + 24
     except Exception:
         pass
@@ -88,7 +88,6 @@ def card_manchete(manchete: str, fonte: str, saida: str, prefixo: str = "NOVO", 
     cor_pref = VERM if prefixo.upper().startswith("URG") else VERDE
     d.rounded_rectangle([60, 60, 60 + 40 + d.textlength(prefixo.upper(), font=_fonte(30, True)), 116], radius=10, fill=cor_pref)
     d.text((80, 71), prefixo.upper(), font=_fonte(30, True), fill=(0, 0, 0))
-    d.text((W - 60, 76), datetime.now(BR).strftime("%d/%m · %H:%M"), font=_fonte(28), fill=CINZA, anchor="ra")
     numero = numero if numero is not None else destaque_numero(manchete)
     y = 190
     if numero:
@@ -109,7 +108,6 @@ def card_mercado(p: dict, saida: str) -> str:
     img = Image.new("RGB", (W, H), PRETO); d = ImageDraw.Draw(img)
     d.rectangle([0, 0, 18, H], fill=VERDE)
     d.text((60, 60), "MERCADO AGORA", font=_fonte(34, True), fill=CINZA)
-    d.text((W - 60, 66), p.get("quando", ""), font=_fonte(28), fill=CINZA, anchor="ra")
     y = 130
     for sym, nome in (("BTC", "Bitcoin"), ("ETH", "Ethereum"), ("SOL", "Solana")):
         m = p.get("precos", {}).get(sym)
@@ -146,7 +144,6 @@ def card_trending(moedas: list, saida: str) -> str:
     d.rectangle([0, 0, 18, H], fill=VERDE)
     d.text((60, 60), "MAIS BUSCADAS HOJE", font=_fonte(34, True), fill=CINZA)
     d.text((60, 105), "no CoinGecko, pelo mundo inteiro", font=_fonte(26), fill=(90, 100, 90))
-    d.text((W - 60, 66), datetime.now(BR).strftime("%d/%m · %H:%M"), font=_fonte(28), fill=CINZA, anchor="ra")
     y = 170
     for i, m in enumerate(moedas[:8], 1):
         d.rounded_rectangle([60, y, W - 60, y + 80], radius=14, fill=PAINEL, outline=LINHA, width=2)
