@@ -35,9 +35,13 @@ if not os.path.exists(LOGO):                                   # no GitHub e na 
 
 
 def _fonte(tam: int, negrito: bool = False):
+    win = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
     cands = (["/System/Library/Fonts/SFNS.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if negrito else "/System/Library/Fonts/Supplemental/Arial.ttf",
               "/System/Library/Fonts/Helvetica.ttc",
-              "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if negrito else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"])
+              "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if negrito else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+              # Windows (VPS de Toquio): sem isso a PIL cai na fonte minuscula e acento vira quadrado
+              os.path.join(win, "segoeuib.ttf" if negrito else "segoeui.ttf"),
+              os.path.join(win, "arialbd.ttf" if negrito else "arial.ttf")])
     for c in cands:
         if os.path.exists(c):
             try:

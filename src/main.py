@@ -199,6 +199,8 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             manchete = text.split("\n")[0].strip()
             for pref in ("NOVO:", "URGENTE:", "JUST IN:", "NEW:"):
                 manchete = manchete.replace(pref, "").strip()
+            import re
+            manchete = re.sub(r"^[^\w\"'(¿¡]+", "", manchete)      # emoji/bandeira fica no texto, nao na arte (fonte do Windows nao tem)
             urgente = any(k in fold(article.title) for k in ("hack", "ataque", "liquida", "invas", "roub", "exploit", "despenc", "dispar", "crash"))
             if not text.startswith(("NOVO:", "URGENTE:")):
                 text = ("URGENTE: " if urgente else "NOVO: ") + text      # molde dos canais grandes (14/09)
