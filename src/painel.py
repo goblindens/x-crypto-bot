@@ -73,14 +73,15 @@ def painel() -> dict:
                                                                      "order": "volume24hr", "ascending": "false", "tag_slug": "fed"})
         prox = next((e for e in ev if e.get("title", "").startswith("Fed Decision in")), None)
         if prox:
-            mk = {}
+            mk = {"alta": 0.0, "manter": 0.0, "corte": 0.0}
             for m in prox.get("markets", []):
                 q = m.get("question", "").lower()
                 p = json.loads(m.get("outcomePrices") or "[0,0]")
                 yes = float(p[0]) * 100
-                if "increase" in q: mk["alta"] = yes
+                # soma 25 bps + 50+ bps de cada lado; "no change" e um mercado so
+                if "increase" in q: mk["alta"] += yes
                 elif "no change" in q: mk["manter"] = yes
-                elif "decrease" in q and "25" in q: mk["corte"] = yes
+                elif "decrease" in q: mk["corte"] += yes
             d["fed"] = {"evento": prox["title"], **mk}
     except Exception as e:
         d["erros"].append(f"polymarket: {e}")
@@ -116,7 +117,7 @@ def texto(d: dict | None = None) -> str:
         L.append(f"Medo & Ganância {f['valor']} ({f['rotulo']}), ontem {f['ontem']} {seta}  [alternative.me]")
     if "global" in d:
         g = d["global"]
-        L.append(f"Cripto total {_fmt_usd(g['mcap_usd']/1e12).replace('US$ ','US$ ')} tri ({_pct(g['mcap_24h'])} 24h); domínio BTC {g['dom_btc']:.1f}%  [CoinGecko]")
+        L.append(f"Cripto total {_fmt_usd(g['mcap_usd']/1e12).replace('US$ ','US$ ')} tri ({_pct(g['mcap_24h'])} 24h); domínio BTC {g['dom_btc']:.1f}%".replace(".", ",") + "  [CoinGecko]")
     if "stablecoins_usd" in d:
         L.append(f"Stablecoins em circulação US$ {d['stablecoins_usd']/1e9:,.0f} bi  [DefiLlama]".replace(",", "."))
     if "fed" in d:
