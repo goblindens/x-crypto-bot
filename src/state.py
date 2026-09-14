@@ -104,7 +104,42 @@ class State:
             p for p in self.data["posts"] if (_parse(p.get("ts")) or now_utc()) >= posts_cutoff
         ]
 
+    def _juntar_com_o_disco(self) -> None:
+        """Dois processos usam o mesmo state.json (o espelho a cada 2 min e o loop de
+        noticias, que fica horas de pe). Sem juntar, quem salva por ultimo apaga o
+        trabalho do outro -- e post ja espelhado voltaria a sair no X, pagando de novo.
+        Achado em 14/09/2026, depois que o loop continuo subiu em Toquio."""
+        if not os.path.exists(self.path):
+            return
+        try:
+            with open(self.path, "r", encoding="utf-8") as fh:
+                disco = json.load(fh)
+        except (json.JSONDecodeError, OSError):
+            return
+        seen = dict(disco.get("seen") or {})
+        seen.update(self.data.get("seen") or {})
+        self.data["seen"] = seen
+
+        vistos, posts = set(), []
+        for post in (disco.get("posts") or []) + (self.data.get("posts") or []):
+            chave = post.get("tweet_id") or f"{post.get('ts')}|{(post.get('text') or '')[:40]}"
+            if chave in vistos:
+                continue
+            vistos.add(chave)
+            posts.append(post)
+        posts.sort(key=lambda p: p.get("ts") or "")
+        self.data["posts"] = posts
+
+        mensal = dict(disco.get("monthly") or {})
+        for mes, n in (self.data.get("monthly") or {}).items():
+            mensal[mes] = max(int(n or 0), int(mensal.get(mes, 0) or 0))
+        self.data["monthly"] = mensal
+
+        for chave, valor in disco.items():          # blocos de outros modos (espelho, etc.)
+            self.data.setdefault(chave, valor)
+
     def save(self) -> None:
+        self._juntar_com_o_disco()
         self.prune()
         os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
         tmp = self.path + ".tmp"
