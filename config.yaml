@@ -313,11 +313,11 @@ news:
       - coinbase
       - blackrock
       - tesouro
-      - ibovespa
-      - dolar
       - drex
       - tokeniza
-    baixa:     # +1
+    baixa:     # +1 (nao conta como assunto: Ibovespa/dolar sozinhos nao sao cripto, 14/09)
+      - ibovespa
+      - dolar
       - defi
       - nft
       - staking
