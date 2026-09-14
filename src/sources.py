@@ -11,7 +11,7 @@ import requests
 
 from .util import fold, now_utc
 
-USER_AGENT = "x-crypto-bot/1.0 (+https://github.com/)"
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"  # 14/09: Kraken devolvia 403 pro UA de bot
 TIMEOUT = 20
 
 

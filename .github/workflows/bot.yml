@@ -6,7 +6,7 @@ on:
     # Grade de 14/09/2026 (imagem em todo post): 8 posts/dia no Threads
     - cron: "0 10 * * *"                 # 07:00 BRT -- dado: mercado agora (card)
     - cron: "0 12 * * *"                 # 09:00 BRT -- dado: Medo & Ganancia (grafico)
-    - cron: "15 12,15,18,21 * * *"       # 09:15, 12:15, 15:15, 18:15 BRT -- noticias (card de manchete)
+    - cron: "*/30 9-23,0 * * *"          # 06:00-21:30 BRT, a cada 30 min -- noticias (card de manchete); 14/09: "ser mais rapido que eles"
     - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
     - cron: "0 21 * * *"                 # 18:00 BRT -- dado: mais buscadas (card)
     - cron: "0 23 * * *"                 # 20:00 BRT -- dado: stablecoins (dia par) / hashrate (dia impar)

@@ -10,9 +10,9 @@ timezone: America/Sao_Paulo
 
 limits:
   max_posts_per_month: 400      # trava de seguranca (o Threads permite 250/DIA)
-  max_posts_per_run: 2          # quantos posts por execucao (modo news)
-  max_posts_per_day: 8          # teto diario (API free do X = 17 posts/24h)
-  min_minutes_between_posts: 40 # espacamento minimo entre dois posts
+  max_posts_per_run: 1          # 1 por execucao: o bot roda a cada 30 min (14/09), sem rajada
+  max_posts_per_day: 12         # teto diario (dele, 14/09: "vamos ate o limite" -> 12, mede 1 semana)
+  min_minutes_between_posts: 30 # espacamento minimo entre dois posts
   max_per_source_per_run: 1     # evita 2 manchetes da mesma fonte seguidas
 
 # ---------------------------------------------------------------------------

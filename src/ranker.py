@@ -56,7 +56,11 @@ def score_article(article, config: dict) -> None:
 
     if article.published:
         age_h = (now_utc() - article.published).total_seconds() / 3600
-        if age_h <= 2:
+        # velocidade (14/09: "ser mais rapido que eles"): a ultima hora vale mais
+        if age_h <= 1:
+            score += 5
+            reasons.append("ultima hora (+5)")
+        elif age_h <= 2:
             score += 3
             reasons.append("muito recente (+3)")
         elif age_h <= 5:
