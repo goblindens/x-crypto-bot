@@ -80,81 +80,117 @@ SERIES = {"fng": serie_fng, "stable": serie_stable, "btc": serie_btc, "hashrate"
 
 
 # ----------------------------------------------------------------- desenho
+def _ticks(minv: float, maxv: float, n: int = 4) -> list:
+    """Ticks 'limpos' (1-2-5 x 10^k) cobrindo a faixa -- eixo que passa credibilidade."""
+    import math
+    faixa = (maxv - minv) or 1.0
+    bruto = faixa / n
+    mag = 10 ** math.floor(math.log10(bruto))
+    passo = next(m * mag for m in (1, 2, 2.5, 5, 10) if m * mag >= bruto)
+    ini = math.floor(minv / passo) * passo
+    fim = math.ceil(maxv / passo) * passo
+    out, v = [], ini
+    while v <= fim + 1e-9:
+        out.append(v); v += passo
+    return out
+
+
 def desenhar(pts, meta, saida: str, subtitulo: str = "") -> dict:
+    """Anatomia institucional (skill dataviz, 14/09): titulo + subtitulo com periodo/unidade,
+    numero-heroi, delta em texto neutro com ponto colorido, linha fina, area a 10%,
+    marcador no fim com anel, rotulo direto so no ultimo ponto, grade hairline,
+    eixo com numeros redondos, rodape com fonte. Desenhado em 2x e reduzido (antialias)."""
+    S = 2                                                     # supersampling
     vals = [v for _, v in pts]
     atual, primeiro = vals[-1], vals[0]
     minv, maxv = min(vals), max(vals)
     var = (atual / primeiro - 1) * 100 if primeiro else 0.0
     n_dias = (pts[-1][0] - pts[0][0]).days or 1
-    cor = VERDE if atual >= primeiro else VERM
+    ontem = meta.get("ontem")
+    sobe = (atual >= ontem) if (meta.get("indice") and ontem is not None) else (atual >= primeiro)
+    cor = VERDE if sobe else VERM
 
-    img = Image.new("RGB", (W, H), PRETO)
+    W2, H2 = W * S, H * S
+    img = Image.new("RGBA", (W2, H2), PRETO + (255,))
     d = ImageDraw.Draw(img)
-    # cabecalho
-    d.text((60, 50), meta["titulo"].upper(), font=_fonte(26, True), fill=CINZA)
-    d.text((60, 90), meta["fmt"](atual), font=_fonte(92, True), fill=TEXTO)
-    sinal = "+" if var >= 0 else "−"
+    F = lambda tam, neg=False: _fonte(tam * S, neg)
+    M = 60 * S                                                # margem
+
+    # --- cabecalho: o que e (titulo), periodo/unidade (subtitulo), numero-heroi, delta
+    d.text((M, 46 * S), meta["titulo"].upper(), font=F(24, True), fill=CINZA)
+    sub = f"{n_dias} dias  ·  {meta.get('unidade') or 'índice'}  ·  {meta['fonte']}"
+    d.text((M, 78 * S), sub, font=F(20), fill=(110, 120, 110))
+    d.text((M, 112 * S), meta["fmt"](atual), font=F(88, True), fill=TEXTO)
+    y_delta = 222 * S
+    d.ellipse([M, y_delta + 9 * S, M + 14 * S, y_delta + 23 * S], fill=cor)        # a cor fica na marca, nao no texto
     if meta.get("indice"):
-        # indice (0-100): variacao percentual nao faz sentido; mostra ontem e a faixa do periodo
-        # ultima ocorrencia da maxima/minima (a mais recente e a que a legenda cita)
         i_max = max(i for i, v in enumerate(vals) if v == maxv); i_min = max(i for i, v in enumerate(vals) if v == minv)
-        ontem = meta.get("ontem")
-        cor = VERDE if (ontem is None or atual >= ontem) else VERM
-        linha2 = (f"ontem {ontem:.0f}  ·  " if ontem is not None else "") + \
-                 f"máx {maxv:.0f} ({pts[i_max][0].astimezone(BR).strftime('%d/%m')})  ·  mín {minv:.0f} ({pts[i_min][0].astimezone(BR).strftime('%d/%m')})"
-        d.text((60, 200), linha2, font=_fonte(30, True), fill=cor)
+        delta_txt = (f"ontem {ontem:.0f}  ·  " if ontem is not None else "") + \
+                    f"máx {maxv:.0f} em {pts[i_max][0].astimezone(BR).strftime('%d/%m')}  ·  mín {minv:.0f} em {pts[i_min][0].astimezone(BR).strftime('%d/%m')}"
     else:
-        d.text((60, 200), f"{sinal}{abs(var):.1f}% em {n_dias} dias".replace(".", ","), font=_fonte(34, True), fill=cor)
+        sinal = "+" if var >= 0 else "−"
+        delta_txt = f"{sinal}{abs(var):.1f}% em {n_dias} dias".replace(".", ",") + f"  ·  de {meta['fmt'](primeiro)} para {meta['fmt'](atual)}"
+    d.text((M + 24 * S, y_delta), delta_txt, font=F(26, True), fill=TEXTO)
     if meta.get("rotulo"):
-        d.text((60, 246), meta["rotulo"], font=_fonte(28), fill=CINZA)
-    if subtitulo:
-        d.text((60, 290), subtitulo, font=_fonte(28), fill=CINZA)
-    # area do grafico
-    x0, y0, x1, y1 = 60, 340, W - 60, H - 150
-    d.rounded_rectangle([x0, y0, x1, y1], radius=18, fill=PAINEL, outline=LINHA, width=2)
-    pad = 28
-    gx0, gy0, gx1, gy1 = x0 + pad, y0 + pad, x1 - pad, y1 - pad
-    faixa = (maxv - minv) or 1.0
+        d.text((M, 262 * S), meta["rotulo"], font=F(22), fill=CINZA)
+
+    # --- area do grafico
+    x0, y0, x1, y1 = M, 318 * S, W2 - M, H2 - 150 * S
+    ticks = _ticks(minv, maxv, n=5)                           # 5-6 linhas: eixo justo, sem ar sobrando
+    lo, hi = ticks[0], ticks[-1]
+    pad_l = max(d.textlength(meta["fmt"](t), font=F(18)) for t in ticks) + 16 * S
+    gx0, gy0, gx1, gy1 = x0 + pad_l, y0 + 10 * S, x1 - 10 * S, y1 - 34 * S
+    faixa = (hi - lo) or 1.0
     def X(i): return gx0 + (gx1 - gx0) * i / max(1, len(pts) - 1)
-    def Y(v): return gy1 - (gy1 - gy0) * (v - minv) / faixa
+    def Y(v): return gy1 - (gy1 - gy0) * (v - lo) / faixa
+    for t in ticks:                                           # grade hairline + eixo com numero redondo (texto neutro)
+        yy = Y(t)
+        d.line([(gx0, yy), (gx1, yy)], fill=LINHA, width=1 * S)
+        d.text((gx0 - 12 * S, yy), meta["fmt"](t), font=F(18), fill=CINZA, anchor="rm")
     poly = [(X(i), Y(v)) for i, v in enumerate(vals)]
-    d.polygon(poly + [(gx1, gy1), (gx0, gy1)], fill=(cor[0] // 6 + 6, cor[1] // 6 + 8, cor[2] // 6 + 6))
-    for k in range(5):                                       # grade e rotulos (por cima da area)
-        yy = gy0 + (gy1 - gy0) * k / 4
-        d.line([(gx0, yy), (gx1, yy)], fill=LINHA, width=1)
-        v = maxv - faixa * k / 4
-        d.text((gx1 - 8, yy - 26), meta["fmt"](v), font=_fonte(20), fill=CINZA, anchor="ra")
-    d.line(poly, fill=cor, width=4, joint="curve")
+    area = Image.new("RGBA", (W2, H2), (0, 0, 0, 0))
+    ImageDraw.Draw(area).polygon(poly + [(gx1, gy1), (gx0, gy1)], fill=cor + (26,))   # ~10% de opacidade
+    img = Image.alpha_composite(img, area); d = ImageDraw.Draw(img)
+    d.line(poly, fill=cor, width=2 * S + 1, joint="curve")   # linha fina
     px, py = poly[-1]
-    d.ellipse([px - 9, py - 9, px + 9, py + 9], fill=cor)
-    d.ellipse([px - 16, py - 16, px + 16, py + 16], outline=cor, width=2)
-    # datas
-    for i in (0, len(pts) // 2, len(pts) - 1):
-        d.text((X(i), gy1 + 6), pts[i][0].astimezone(BR).strftime("%d/%m"), font=_fonte(20), fill=CINZA, anchor="ma")
-    # rodape
-    quando = datetime.now(BR).strftime("%d/%m/%Y %H:%M")          # so pro registro (nao vai na imagem)
-    d.text((60, H - 100), f"Fonte: {meta['fonte']}", font=_fonte(24), fill=CINZA)
-    d.text((60, H - 62), "Não é recomendação de investimento.", font=_fonte(20), fill=(90, 100, 90))
-    x_dir = W - 60
-    try:                                                     # QR do grupo (pedido dele, 14/09), pequeno, ao lado da logo
+    r = 6 * S
+    d.ellipse([px - r - 2 * S, py - r - 2 * S, px + r + 2 * S, py + r + 2 * S], fill=PRETO)  # anel da superficie
+    d.ellipse([px - r, py - r, px + r, py + r], fill=cor)
+    rot = meta["fmt"](atual)                                  # rotulo direto so no ultimo ponto
+    tw = d.textlength(rot, font=F(20, True))
+    lx = min(px + 14 * S, gx1 - tw); ly = max(gy0, min(py - 32 * S, gy1 - 30 * S))
+    d.rounded_rectangle([lx - 8 * S, ly - 4 * S, lx + tw + 8 * S, ly + 26 * S], radius=6 * S, fill=PAINEL)
+    d.text((lx, ly), rot, font=F(20, True), fill=TEXTO)
+    n = len(pts)                                              # datas: 5 marcas
+    for i in sorted({0, n // 4, n // 2, (3 * n) // 4, n - 1}):
+        d.text((X(i), gy1 + 8 * S), pts[i][0].astimezone(BR).strftime("%d/%m"), font=F(18), fill=CINZA, anchor="ma")
+    d.line([(gx0, gy1), (gx1, gy1)], fill=LINHA, width=1 * S)
+
+    # --- rodape: fonte (regra dele: sem horario, sem "conferido")
+    quando = datetime.now(BR).strftime("%d/%m/%Y %H:%M")      # so pro registro (nao vai na imagem)
+    d.line([(M, H2 - 118 * S), (W2 - M, H2 - 118 * S)], fill=LINHA, width=1 * S)
+    d.text((M, H2 - 96 * S), f"Fonte: {meta['fonte']}", font=F(24), fill=CINZA)
+    d.text((M, H2 - 60 * S), "Não é recomendação de investimento.", font=F(18), fill=(90, 100, 90))
+    x_dir = W2 - M
+    try:
         from .qr import imagem as qr_imagem
-        qr = qr_imagem(tamanho=84)
+        qr = qr_imagem(tamanho=84 * S)
         if qr is not None:
-            img.paste(qr, (x_dir - 84, H - 112))
-            x_dir -= 84 + 20
+            img.paste(qr, (x_dir - 84 * S, H2 - 112 * S)); x_dir -= 84 * S + 20 * S
     except Exception:
         pass
     if os.path.exists(LOGO):
         try:
-            lg = Image.open(LOGO).convert("RGBA")
-            lg.thumbnail((200, 64))
-            img.paste(lg, (x_dir - lg.width, H - 105), lg)
+            lg = Image.open(LOGO).convert("RGBA"); lg.thumbnail((200 * S, 64 * S))
+            img.paste(lg, (x_dir - lg.width, H2 - 105 * S), lg)
         except Exception:
-            d.text((x_dir, H - 62), "SecretLab", font=_fonte(22, True), fill=VERDE, anchor="ra")
+            d.text((x_dir, H2 - 62 * S), "SecretLab", font=F(22, True), fill=VERDE, anchor="ra")
     else:
-        d.text((x_dir, H - 62), "SecretLab", font=_fonte(22, True), fill=VERDE, anchor="ra")
+        d.text((x_dir, H2 - 62 * S), "SecretLab", font=F(22, True), fill=VERDE, anchor="ra")
+
+    final = img.convert("RGB").resize((W, H), Image.LANCZOS)
     os.makedirs(os.path.dirname(os.path.abspath(saida)), exist_ok=True)
-    img.save(saida, quality=92)
+    final.save(saida, quality=94)
     return {"arquivo": saida, "atual": atual, "atual_txt": meta["fmt"](atual), "primeiro": primeiro, "var_pct": round(var, 2),
             "dias": n_dias, "min": minv, "max": maxv, "fonte": meta["fonte"], "quando": quando, "rotulo": meta.get("rotulo", "")}
 
