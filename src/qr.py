@@ -17,7 +17,8 @@ def imagem(link: str = LINK_PADRAO, tamanho: int = 150):
         import qrcode
     except ImportError:
         return None
-    q = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=6, border=1)
+    # menor possivel que ainda le (pedido dele, 14/09): correcao L (menos modulos), borda de 1 modulo
+    q = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=6, border=1)
     q.add_data(link); q.make(fit=True)
     im = q.make_image(fill_color=(6, 8, 6), back_color=(236, 240, 236)).convert("RGB")
     im = im.resize((tamanho, tamanho), Image.NEAREST)

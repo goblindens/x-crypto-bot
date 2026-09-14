@@ -40,11 +40,10 @@ def _logo(img, d):
     x_dir = W - 60
     try:
         from .qr import imagem as qr_imagem
-        qr = qr_imagem(tamanho=124)
+        qr = qr_imagem(tamanho=90)                     # minimalista: 90 px (~3 px por modulo), sem legenda
         if qr is not None:
-            img.paste(qr, (x_dir - 124, H - 146))
-            d.text((x_dir - 62, H - 18), "grupo do WhatsApp", font=_fonte(14), fill=CINZA, anchor="ma")
-            x_dir -= 124 + 24
+            img.paste(qr, (x_dir - 90, H - 130))
+            x_dir -= 90 + 22
     except Exception:
         pass
     if os.path.exists(LOGO):

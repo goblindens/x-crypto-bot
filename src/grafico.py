@@ -138,10 +138,10 @@ def desenhar(pts, meta, saida: str, subtitulo: str = "") -> dict:
     x_dir = W - 60
     try:                                                     # QR do grupo (pedido dele, 14/09), pequeno, ao lado da logo
         from .qr import imagem as qr_imagem
-        qr = qr_imagem(tamanho=110)
+        qr = qr_imagem(tamanho=84)
         if qr is not None:
-            img.paste(qr, (x_dir - 110, H - 128))
-            x_dir -= 110 + 22
+            img.paste(qr, (x_dir - 84, H - 112))
+            x_dir -= 84 + 20
     except Exception:
         pass
     if os.path.exists(LOGO):
