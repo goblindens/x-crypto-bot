@@ -33,6 +33,21 @@ def score_article(article, config: dict) -> None:
                     bateu_palavra = True
                 break  # so uma palavra por faixa, senao um texto longo infla a nota
 
+    # Fonte de geopolitica/macro (14/09/2026): so passa se a manchete tiver um termo
+    # que de fato mexe com cripto (guerra, petroleo, juros, dolar, China...).
+    feed_cfg = next((f for f in news_cfg["feeds"] if f["name"] == article.source), {})
+    if feed_cfg.get("grupo") == "macro":
+        termos = news_cfg.get("macro_termos") or []
+        acerto = next((t for t in termos if has_term(title_only, t)), None)
+        if not acerto:
+            score = -60
+            reasons.append("macro sem termo que mexa com cripto")
+            article.score, article.reasons = score, reasons
+            return
+        score += 3
+        reasons.append(f"macro '{acerto}' (+3)")
+        bateu_palavra = True
+
     # "Apenas relevantes" (regra dele, 13/09/2026): sem assunto forte (parceiro,
     # alta ou media), a manchete nao entra, por mais recente ou curta que seja.
     if news_cfg.get("exigir_assunto", False) and not bateu_palavra:

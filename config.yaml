@@ -108,6 +108,98 @@ news:
       weight: 2
       lang: en
       enabled: false
+    # ---------------------------------------------------------------------
+    # GEOPOLITICA / MACRO (14/09/2026): so entra manchete que pode mexer no
+    # mercado cripto (termos em `macro_termos`); o resto e descartado. Fontes
+    # de imprensa estabelecida, nada de midia estatal (Fars, Al Mayadeen, RT).
+    # ---------------------------------------------------------------------
+    - name: WSJ World
+      url: https://feeds.content.dowjones.io/public/rss/RSSWorldNews
+      weight: 3
+      lang: en
+      grupo: macro
+    - name: NYT World
+      url: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+      weight: 3
+      lang: en
+      grupo: macro
+    - name: BBC World
+      url: http://feeds.bbci.co.uk/news/world/rss.xml
+      weight: 3
+      lang: en
+      grupo: macro
+    - name: CNBC World
+      url: https://www.cnbc.com/id/100727362/device/rss/rss.html
+      weight: 3
+      lang: en
+      grupo: macro
+    - name: Al Jazeera
+      url: https://www.aljazeera.com/xml/rss/all.xml
+      weight: 2
+      lang: en
+      grupo: macro
+    - name: BBC Brasil
+      url: https://feeds.bbci.co.uk/portuguese/rss.xml
+      weight: 2
+      lang: pt
+      grupo: macro
+
+  # Manchete de fonte `grupo: macro` so passa se tiver um destes termos
+  # (o que de fato move cripto: guerra, petroleo, juros, dolar, China, sancao)
+  macro_termos:
+    - iran
+    - irã
+    - israel
+    - russia
+    - rússia
+    - ucrania
+    - ucrânia
+    - china
+    - taiwan
+    - ormuz
+    - hormuz
+    - petroleo
+    - petróleo
+    - oil
+    - opec
+    - opep
+    - guerra
+    - war
+    - missil
+    - míssil
+    - missile
+    - ataque
+    - strike
+    - sancao
+    - sanção
+    - sanction
+    - tarifa
+    - tariff
+    - fed
+    - juros
+    - interest rate
+    - rate hike
+    - rate cut
+    - inflacao
+    - inflação
+    - inflation
+    - cpi
+    - recessao
+    - recessão
+    - recession
+    - dolar
+    - dólar
+    - dollar
+    - treasury
+    - tesouro
+    - banco central
+    - central bank
+    - shutdown
+    - default
+    - bitcoin
+    - cripto
+    - crypto
+    - stablecoin
 
   # Palavras que aumentam a nota (peso entre parenteses)
   keywords:
