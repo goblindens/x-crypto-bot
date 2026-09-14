@@ -77,6 +77,17 @@ news:
       weight: 5
       lang: en
       parceiro: true
+    # Portal do Bitcoin e Money Times bloqueiam o IP de Toquio (403): caminho alternativo via Google News
+    - name: Portal do Bitcoin
+      url: https://news.google.com/rss/search?q=site:portaldobitcoin.uol.com.br+when:12h&hl=pt-BR&gl=BR&ceid=BR:pt-419
+      weight: 4
+      lang: pt
+      googlenews: true
+    - name: Money Times Cripto
+      url: https://news.google.com/rss/search?q=site:moneytimes.com.br+cripto+when:12h&hl=pt-BR&gl=BR&ceid=BR:pt-419
+      weight: 3
+      lang: pt
+      googlenews: true
     - name: Kraken                    # o blog passou a bloquear robo (403, 14/09): via Google News tambem
       url: https://news.google.com/rss/search?q=site:blog.kraken.com+when:24h&hl=en-US&gl=US&ceid=US:en
       weight: 5
