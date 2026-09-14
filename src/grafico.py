@@ -135,15 +135,24 @@ def desenhar(pts, meta, saida: str, subtitulo: str = "") -> dict:
     quando = datetime.now(BR).strftime("%d/%m/%Y %H:%M")
     d.text((60, H - 100), f"Fonte: {meta['fonte']}  ·  {quando} BRT", font=_fonte(24), fill=CINZA)
     d.text((60, H - 62), "Dado público, conferido na hora. Não é recomendação de investimento.", font=_fonte(20), fill=(90, 100, 90))
+    x_dir = W - 60
+    try:                                                     # QR do grupo (pedido dele, 14/09), pequeno, ao lado da logo
+        from .qr import imagem as qr_imagem
+        qr = qr_imagem(tamanho=110)
+        if qr is not None:
+            img.paste(qr, (x_dir - 110, H - 128))
+            x_dir -= 110 + 22
+    except Exception:
+        pass
     if os.path.exists(LOGO):
         try:
             lg = Image.open(LOGO).convert("RGBA")
-            lg.thumbnail((220, 70))
-            img.paste(lg, (W - 60 - lg.width, H - 110), lg)
+            lg.thumbnail((200, 64))
+            img.paste(lg, (x_dir - lg.width, H - 105), lg)
         except Exception:
-            d.text((W - 60, H - 62), "SecretLab", font=_fonte(22, True), fill=VERDE, anchor="ra")
+            d.text((x_dir, H - 62), "SecretLab", font=_fonte(22, True), fill=VERDE, anchor="ra")
     else:
-        d.text((W - 60, H - 62), "SecretLab", font=_fonte(22, True), fill=VERDE, anchor="ra")
+        d.text((x_dir, H - 62), "SecretLab", font=_fonte(22, True), fill=VERDE, anchor="ra")
     os.makedirs(os.path.dirname(os.path.abspath(saida)), exist_ok=True)
     img.save(saida, quality=92)
     return {"arquivo": saida, "atual": atual, "atual_txt": meta["fmt"](atual), "primeiro": primeiro, "var_pct": round(var, 2),

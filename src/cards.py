@@ -36,13 +36,24 @@ def _rodape(d, fonte: str, quando: str | None = None):
 
 
 def _logo(img, d):
+    """Canto inferior direito: QR do grupo do WhatsApp (pedido dele, 14/09) + logo SecretLab."""
+    x_dir = W - 60
+    try:
+        from .qr import imagem as qr_imagem
+        qr = qr_imagem(tamanho=124)
+        if qr is not None:
+            img.paste(qr, (x_dir - 124, H - 140))
+            d.text((x_dir - 62, H - 12), "grupo", font=_fonte(16), fill=CINZA, anchor="ma")
+            x_dir -= 124 + 24
+    except Exception:
+        pass
     if os.path.exists(LOGO):
         try:
-            lg = Image.open(LOGO).convert("RGBA"); lg.thumbnail((240, 80))
-            img.paste(lg, (W - 60 - lg.width, H - 135), lg); return
+            lg = Image.open(LOGO).convert("RGBA"); lg.thumbnail((200, 70))
+            img.paste(lg, (x_dir - lg.width, H - 112), lg); return
         except Exception:
             pass
-    d.text((W - 60, H - 100), "SecretLab", font=_fonte(26, True), fill=VERDE, anchor="ra")
+    d.text((x_dir, H - 100), "SecretLab", font=_fonte(26, True), fill=VERDE, anchor="ra")
 
 
 def _quebrar(texto: str, fonte, largura: int, d) -> list:
