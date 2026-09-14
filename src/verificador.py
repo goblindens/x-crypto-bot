@@ -34,7 +34,15 @@ FONTES_EXTRA = [  # validadas, mas fora do config (ingles)
 ]
 PROIBIDAS = ["previsao", "previsão", "vai subir", "vai cair", "vai disparar", "alvo de preco", "preco-alvo",
              "garantido", "lucro certo", "sem risco", "compre agora", "compra agora", "recomendo comprar",
-             "patrocinado pela okx", "a okx patrocina"]
+             "patrocinado pela okx", "a okx patrocina",
+             # Previsao de preco tambem entra pelo verbo, inclusive vinda de fonte seria
+             # ("Estrategista projeta queda de 10% no S&P 500" escapou em 14/09/2026).
+             # Regra dele, 13/09: "nao vamos mexer com previsao de preco, nao me venha com essa".
+             "projeta", "projetam", "projecao", "projeção", "preve ", "prevê ", "preveem", "preveem",
+             "estima que", "aposta em alta", "aposta em queda", "deve subir", "deve cair",
+             "pode subir", "pode cair", "pode disparar", "pode despencar", "pode chegar a",
+             "espera alta", "espera queda", "ve espaco para", "vê espaço para",
+             "price target", "forecast", "predicts", "prediction"]
 
 _MOEDAS = {"BTC": ("BTC-USDT", "BTCUSDT", "bitcoin"), "ETH": ("ETH-USDT", "ETHUSDT", "ethereum"),
            "SOL": ("SOL-USDT", "SOLUSDT", "solana")}
