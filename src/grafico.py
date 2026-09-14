@@ -48,7 +48,8 @@ def _fonte(tam: int, negrito: bool = False):
 # ------------------------------------------------------------------- dados
 def serie_fng(dias=90):
     d = requests.get("https://api.alternative.me/fng/", params={"limit": dias, "format": "json"}, timeout=T).json()["data"]
-    pts = [(datetime.fromtimestamp(int(x["timestamp"]), tz=timezone.utc), float(x["value"])) for x in reversed(d)]
+    # o indice e diario (data UTC); fixo ao meio-dia pra data nao "voltar um dia" ao converter pra BRT
+    pts = [(datetime.fromtimestamp(int(x["timestamp"]), tz=timezone.utc).replace(hour=12), float(x["value"])) for x in reversed(d)]
     trad = {"Extreme Fear": "Medo extremo", "Fear": "Medo", "Neutral": "Neutro", "Greed": "Ganância", "Extreme Greed": "Ganância extrema"}
     rot = trad.get(d[0]["value_classification"], d[0]["value_classification"])
     ontem = float(d[1]["value"]) if len(d) > 1 else None

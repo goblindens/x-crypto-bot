@@ -53,7 +53,8 @@ def painel() -> dict:
     try:
         v, rot = fng_ao_vivo()
         f = _get("https://api.alternative.me/fng/?limit=2")["data"]
-        d["fng"] = {"valor": v, "rotulo": rot, "ontem": int(f[1]["value"])}
+        trad = {"Extreme Fear": "Medo extremo", "Fear": "Medo", "Neutral": "Neutro", "Greed": "Ganância", "Extreme Greed": "Ganância extrema"}
+        d["fng"] = {"valor": v, "rotulo": trad.get(rot, rot), "ontem": int(f[1]["value"])}
     except Exception as e:
         d["erros"].append(f"fng: {e}")
     try:

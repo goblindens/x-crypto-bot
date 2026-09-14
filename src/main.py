@@ -19,7 +19,10 @@ from .publisher_threads import ThreadsPublisher
 from .ranker import select
 from .sources import collect_market, collect_news
 from .state import State
-from .util import fits, set_platform, tweet_length
+from .util import fits, fold, set_platform, tweet_length
+from datetime import datetime, timezone, timedelta
+
+BR_TZ = timezone(timedelta(hours=-3))
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_PATH = os.path.join(ROOT, "config.yaml")
@@ -75,6 +78,70 @@ def quota_gate(state: State, config: dict, force: bool) -> str:
     return ""
 
 
+def _imagens_valem(config: dict) -> bool:
+    """Imagem em todo post so publica a partir de `imagens.ligar_em`; antes, so mostra."""
+    im = config.get("imagens") or {}
+    if not im.get("ligado"):
+        return False
+    hoje = datetime.now(BR_TZ).strftime("%Y-%m-%d") if BR_TZ else datetime.utcnow().strftime("%Y-%m-%d")
+    return str(im.get("ligar_em", "2000-01-01")) <= hoje
+
+
+def publicar_com_imagem(publisher, text: str, caminho_png: str, config: dict, state: State, kind: str, title: str) -> str:
+    """Publica texto + imagem na plataforma certa. Devolve o id, 'mostrar' (dia de prova) ou '' (falha)."""
+    if publisher.dry_run:
+        print(f"\n----- DRY RUN (imagem {os.path.basename(caminho_png)}) -----\n{text}\n----------------------------------------\n")
+        return "dry-run"
+    if not _imagens_valem(config):
+        print(f"[mostrar] NAO publicado (imagens valem a partir de {(config.get('imagens') or {}).get('ligar_em')}):\n"
+              f"  imagem: {caminho_png}\n{text}\n----------------------------------------")
+        return "mostrar"
+    try:
+        if hasattr(publisher, "post_image"):                 # Threads: precisa de URL publica
+            from .imagens import publicar as hospedar
+            url = hospedar(caminho_png)
+            post_id = publisher.post_image(url, text)
+        elif hasattr(publisher, "post_with_media"):          # X: upload direto
+            post_id = publisher.post_with_media(text, caminho_png)
+        else:
+            post_id = publisher.post(text)
+    except (PublishError, RuntimeError) as exc:
+        print(f"[erro] {exc}")
+        publisher.last_error = str(exc)
+        return ""
+    state.record_post(kind, text, url=caminho_png, title=title, tweet_id=post_id)
+    return post_id
+
+
+def run_dado(config: dict, state: State, publisher, force: bool, tipo: str) -> int:
+    """Post fixo de dado (mercado, fng, trending, stable, hashrate, btc) com imagem propria."""
+    from .dado import montar
+    from .verificador import verificar
+    kind = f"dado/{tipo}"
+    if not (force or publisher.dry_run) and state.posted_kind_today(kind):
+        print(f"[dado] {tipo} ja publicado nas ultimas 20h")
+        return 0
+    blocked = quota_gate(state, config, force or publisher.dry_run)
+    if blocked:
+        print(f"[quota] parando: {blocked}")
+        return 0
+    try:
+        text, png, title = montar(tipo, config)
+    except Exception as exc:
+        print(f"[dado] nao consegui montar {tipo}: {exc}")
+        return 0
+    ver = verificar(text, config)
+    if not ver["ok"]:
+        print("[verificacao] BLOQUEADO: " + " | ".join(ver["problemas"]))
+        return 0
+    print("[verificacao] OK")
+    if not fits(text):
+        print(f"[dado] texto com {tweet_length(text)} caracteres; descartando")
+        return 0
+    pid = publicar_com_imagem(publisher, text, png, config, state, kind, title)
+    return 1 if pid and pid not in ("mostrar",) else 0
+
+
 def run_news(config: dict, state: State, publisher: Publisher, force: bool, limit: int) -> int:
     articles = collect_news(config)
     if not articles:
@@ -124,13 +191,43 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             state.mark_seen(article.url)
             continue
 
+        kind = "parceiro" if eh_parceiro else "news"
+        if (config.get("imagens") or {}).get("ligado"):
+            # Imagem em todo post (14/09): card SecretLab com a manchete, numero e fonte
+            from .cards import card_manchete
+            from .dado import _saida
+            manchete = text.split("\n")[0].strip()
+            for pref in ("NOVO:", "URGENTE:", "JUST IN:", "NEW:"):
+                manchete = manchete.replace(pref, "").strip()
+            urgente = any(k in fold(article.title) for k in ("hack", "ataque", "liquida", "invas", "roub", "exploit", "despenc", "dispar", "crash"))
+            if not text.startswith(("NOVO:", "URGENTE:")):
+                text = ("URGENTE: " if urgente else "NOVO: ") + text      # molde dos canais grandes (14/09)
+            try:
+                png = card_manchete(manchete, article.source, _saida("noticia", config), prefixo="URGENTE" if urgente else "NOVO")
+            except Exception as exc:
+                print(f"[card] nao gerou imagem ({exc}); vai so texto")
+                png = ""
+            if png:
+                tweet_id = publicar_com_imagem(publisher, text, png, config, state, kind, article.title)
+                if tweet_id == "mostrar":
+                    state.mark_seen(article.url)
+                    continue
+                if not tweet_id:
+                    return posted
+                posted += 1
+                if eh_parceiro and parc_cfg.get("resposta") and hasattr(publisher, "post_reply") and tweet_id != "dry-run":
+                    try:
+                        publisher.post_reply(parc_cfg["resposta"], tweet_id)
+                    except PublishError as exc:
+                        print(f"[parceiro] resposta com o link nao saiu: {exc}")
+                continue
         try:
             tweet_id = publisher.post(text)
         except PublishError as exc:
             print(f"[erro] {exc}")
             publisher.last_error = str(exc)
             return posted
-        state.record_post("parceiro" if eh_parceiro else "news", text, url=article.url, title=article.title, tweet_id=tweet_id)
+        state.record_post(kind, text, url=article.url, title=article.title, tweet_id=tweet_id)
         posted += 1
         if eh_parceiro and parc_cfg.get("resposta") and hasattr(publisher, "post_reply") and tweet_id != "dry-run":
             try:
@@ -229,7 +326,8 @@ def run_ranking(config: dict, state: State, publisher, force: bool, image_url: s
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Bot de noticias de cripto para o X")
-    parser.add_argument("--mode", choices=["news", "market", "ranking", "espelho"], default="news")
+    parser.add_argument("--mode", choices=["news", "market", "ranking", "espelho", "dado"], default="news")
+    parser.add_argument("--tipo", default="mercado", help="modo dado: mercado|fng|trending|stable|hashrate|btc")
     parser.add_argument("--seed", action="store_true", help="modo espelho: marca os posts atuais do Instagram como vistos, sem publicar")
     parser.add_argument("--show", type=int, default=0, help="modo espelho: so mostra como ficariam os ultimos N posts do Instagram")
     parser.add_argument("--repeat", type=int, default=1, help="modo espelho: repete a verificacao N vezes na mesma execucao")
@@ -261,6 +359,8 @@ def main(argv=None) -> int:
 
     if args.mode == "market":
         posted = run_market(config, state, publisher, args.force)
+    elif args.mode == "dado":
+        posted = run_dado(config, state, publisher, args.force, args.tipo)
     elif args.mode == "ranking":
         posted = run_ranking(config, state, publisher, args.force, args.image_url, args.caption_file)
     elif args.mode == "espelho":

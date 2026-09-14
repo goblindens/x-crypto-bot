@@ -98,38 +98,43 @@ def _numero(txt: str):
     return val, unidade
 
 
+_ALIAS = {"BTC": r"(?:BTC|Bitcoin)", "ETH": r"(?:ETH|Ether|Ethereum)", "SOL": r"(?:SOL|Solana)"}
+
+
 def checar_numeros(texto: str) -> list:
     problemas = []
     vivo = precos_ao_vivo()
-    for sym in _MOEDAS:
+    for sym0 in _MOEDAS:
+        sym = _ALIAS[sym0]                      # "Bitcoin sobe para US$ 78 mil" tambem e preco do BTC (14/09)
         for m in re.finditer(rf"\b{sym}\b([^\d$\n]{{0,25}})((?:US\$|R\$|\$)?\s?\d[\d.,]*\s?(?:mil|k)?)(\s?(?:mi|bi|milh|bilh|%))?", texto, re.I):
             gap, bruto, sufixo = m.group(1), m.group(2).strip(), (m.group(3) or "")
-            if sufixo:                       # "$463 mi", "+1,4%": nao e preco
+            if sufixo:
                 continue
-            if re.search(r"etf|ganh|perd|fluxo|sa[ií]da|entrada|volume|domin|mi\b", fold(gap)):
-                continue                     # "ETFs de BTC perderam $463 mi" nao e preco do BTC
+            if re.search(r"etf|ganh|perd|fluxo|sa[ií]da|entrada|volume|domin|mi\b|compr|vend|hold|tesour|reserva", fold(gap)):
+                continue
             if re.search(r"\d\s?%", bruto):
                 continue
             try:
                 val, unidade = _numero(bruto)
             except ValueError:
                 continue
-            if sym not in vivo:
-                problemas.append(f"{sym}: nao consegui conferir o preco ao vivo (fontes fora)"); continue
-            p = vivo[sym]["preco"]
+            if sym0 not in vivo:
+                problemas.append(f"{sym0}: nao consegui conferir o preco ao vivo (fontes fora)"); continue
+            p = vivo[sym0]["preco"]
+            if val < p * 0.2:                   # "469 BTC comprados" nao e preco
+                continue
             if unidade > p * 0.002:
-                problemas.append(f"{sym} '{bruto}': arredondado demais (ao vivo {p:,.0f}); escreva com precisao de {p*0.002:,.0f} ou melhor")
+                problemas.append(f"{sym0} '{bruto}': arredondado demais (ao vivo {p:,.0f}); escreva com precisao de {p*0.002:,.0f} ou melhor")
                 continue
             if abs(val - p) > max(unidade, p * 0.004):
-                problemas.append(f"{sym} '{bruto}' nao bate com o preco ao vivo {p:,.2f} ({vivo[sym]['fontes']} fontes)")
-        # variacao 24h logo apos a moeda: "+1,4%"
-        for m in re.finditer(rf"\b{sym}\b[^\n]{{0,40}}?\(?([+\-−]?\s?\d+[.,]?\d*)\s?%\)?", texto, re.I):
+                problemas.append(f"{sym0} '{bruto}' nao bate com o preco ao vivo {p:,.2f} ({vivo[sym0]['fontes']} fontes)")
+        for m in re.finditer(rf"\b{sym}\b[^\n(%]{{0,30}}\(([+\-−]?\s?\d+[.,]?\d*)\s?%", texto, re.I):
             try:
                 v = float(m.group(1).replace("−", "-").replace(",", ".").replace(" ", ""))
             except ValueError:
                 continue
-            if sym in vivo and abs(v - vivo[sym]["var"]) > 0.3:
-                problemas.append(f"{sym} variacao '{m.group(1)}%' nao bate com 24h ao vivo {vivo[sym]['var']:+.2f}%")
+            if sym0 in vivo and abs(v - vivo[sym0]["var"]) > 0.3:
+                problemas.append(f"{sym0} variacao '{m.group(1)}%' nao bate com 24h ao vivo {vivo[sym0]['var']:+.2f}%")
     m = re.search(r"(medo\s*&\s*gan[aâ]ncia|m&g)([^\n.!?]{0,80})", texto, re.I)
     if m:
         nums = [int(x) for x in re.findall(r"\b(\d{1,3})\b", m.group(2))]

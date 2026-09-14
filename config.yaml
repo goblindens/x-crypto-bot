@@ -82,26 +82,27 @@ news:
     # traduz -- a manchete sairia em ingles. Ligue (enabled: true) se voce
     # quiser postar em ingles ou se ativar o composer com a Claude.
     # ---------------------------------------------------------------------
+    # LIGADAS em 14/09/2026 (IA traduz; sem IA a manchete em ingles nao sai)
     - name: CoinDesk
       url: https://www.coindesk.com/arc/outboundfeeds/rss/
       weight: 4
       lang: en
-      enabled: false
+      enabled: true
     - name: Cointelegraph
       url: https://cointelegraph.com/rss
       weight: 3
       lang: en
-      enabled: false
+      enabled: true
     - name: Decrypt
       url: https://decrypt.co/feed
       weight: 3
       lang: en
-      enabled: false
+      enabled: true
     - name: The Block
       url: https://www.theblock.co/rss.xml
       weight: 4
       lang: en
-      enabled: false
+      enabled: true
     - name: Bitcoin Magazine
       url: https://bitcoinmagazine.com/feed
       weight: 2
@@ -220,7 +221,7 @@ style:
     Direto, informativo e sobrio. Zero hype, zero emoji em excesso, zero
     recomendacao de compra ou venda. Escreve como um jornalista de mercado
     brasileiro: primeiro o fato, depois o numero ou o contexto que importa.
-  hashtags_max: 2
+  hashtags_max: 0               # 14/09: molde dos canais grandes nao usa hashtag
   hashtag_default: "#Cripto"     # sempre entra quando sobra espaco
   # tag -> termos que a acionam (procurados no texto do post)
   hashtag_pool:
@@ -258,6 +259,17 @@ parceiros:
   chamada: "Quer saber mais? A galera já tá comentando na comunidade 👇"
   resposta: "Entra aqui, é de graça: https://chat.whatsapp.com/ErFeZyBjel23uiNJirNDTp"
   max_por_semana_x: 3           # no X cada um custa US$ 0,20 (tem link)
+
+# ---------------------------------------------------------------------------
+# IMAGEM EM TODO POST (14/09/2026, "vamos entregar melhor que eles"):
+# noticia sai com card SecretLab (manchete + numero + fonte); dado fixo sai
+# com grafico/card proprio. Antes de `ligar_em`, o bot gera tudo e so MOSTRA
+# no log (nao publica) -- e o dia de prova. A partir da data, publica.
+# ---------------------------------------------------------------------------
+imagens:
+  ligado: true
+  ligar_em: "2026-09-15"
+  pasta: artes/auto
 
 composer:
   # false = template puro em Python. Custo ZERO, nenhuma chave de API.

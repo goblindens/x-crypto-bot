@@ -102,7 +102,7 @@ def _news_template(article, config: dict) -> str:
 
     # Regra dele (13/09/2026): noticia sai so com o NOME da fonte, nunca com o
     # link. Link, so o da comunidade (e na 1a resposta).
-    tail = f"\n\nvia {article.source}"
+    tail = f"\n\n({article.source})"
     if hashtags:
         tail += f"\n\n{hashtags}"
     reserved = tweet_length(tail)
@@ -190,7 +190,13 @@ def _compose_news_with_claude(article, config: dict):
         "em portugues do Brasil.\n"
         f"Tom: {style.get('voice', 'direto e informativo')}\n"
         "Regras rigidas:\n"
-        "- No maximo 200 caracteres.\n"
+        "- UMA linha so, no maximo 170 caracteres, estilo manchete de canal de noticias: "
+        "fato direto, numero na frente quando houver, sem adjetivo seu, sem opiniao.\n"
+        "- Se um pais for central, comece com a bandeira dele (emoji), ex.: '🇺🇸 Senado vota...'.\n"
+        "- Nao traduza nomes proprios; converta valores em ingles pra formato BR (US$ 463 mi, 85%).\n"
+        "- NUNCA repita o preco atual de BTC/ETH/SOL que estiver na manchete (ele muda a cada minuto e "
+        "o sistema confere ao vivo): diga 'sobe', 'cai', 'passa dos', sem o numero. Valores de fluxo, "
+        "compra, liquidacao e ETF podem (e devem) aparecer.\n"
         "- Nao invente numeros, nomes ou fatos que nao estejam no material fornecido.\n"
         "- Nao use hashtags nem links (sao adicionados depois pelo sistema).\n"
         "- Nao de recomendacao de investimento.\n"
@@ -237,7 +243,7 @@ def _compose_news_with_claude(article, config: dict):
         return None
 
     hashtags = pick_hashtags(body or article.title, config)
-    tail = f"\n\nvia {article.source}"      # so o nome da fonte, sem link (regra dele)
+    tail = f"\n\n({article.source})"      # so o nome da fonte, entre parenteses, sem link (regra dele)
     if hashtags:
         tail += f"\n\n{hashtags}"
     body = truncate_to_fit(body, reserved=tweet_length(tail))
