@@ -247,6 +247,35 @@ news:
     - cripto
     - crypto
     - stablecoin
+  # Termos que sozinhos ja mexem com o mercado (passam na primeira). Os outros da lista
+  # acima (war, oil, strike, china...) so passam em dupla na manchete (14/09/2026).
+  macro_fortes:
+    - ormuz
+    - hormuz
+    - opec
+    - opep
+    - sancao
+    - sanção
+    - sanction
+    - tarifa
+    - tariff
+    - fed
+    - juros
+    - interest rate
+    - rate hike
+    - rate cut
+    - inflacao
+    - inflação
+    - inflation
+    - cpi
+    - recessao
+    - recessão
+    - recession
+    - treasury
+    - banco central
+    - central bank
+    - shutdown
+    - default
 
   # Palavras que aumentam a nota (peso entre parenteses)
   keywords:
@@ -396,7 +425,7 @@ parceiros:
   ligado: false
   nomes: ["OKX", "Kraken", "Ledger"]
   chamada: "Quer saber mais? A galera já tá comentando na comunidade 👇"
-  resposta: "Entra aqui, é de graça: https://chat.whatsapp.com/ErFeZyBjel23uiNJirNDTp"
+  resposta: "Entra aqui, é de graça: https://chat.whatsapp.com/Kg3lM88Q5tu17jXqbxxWRw"
   max_por_semana_x: 3           # no X cada um custa US$ 0,20 (tem link)
 
 # ---------------------------------------------------------------------------

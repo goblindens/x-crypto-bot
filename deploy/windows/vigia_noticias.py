@@ -41,10 +41,16 @@ def main() -> int:
         os.replace(LOG, LOG + ".1")
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
     DETACHED = 0x00000008 | 0x00000200                                  # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
-    with open(LOG, "ab") as out:
+    # cada partida escreve no proprio log (evita trava de arquivo entre processos no Windows)
+    log = os.path.join(LOGS, "noticias.log")
+    try:
+        out = open(log, "ab")
+    except OSError:
+        out = open(os.path.join(LOGS, f"noticias-{os.getpid()}.log"), "ab")
+    with out:
         p = subprocess.Popen([sys.executable, "-X", "utf8", "-m", "src.main", "--mode", "loop", "--a-cada", A_CADA, "--minutos", "525600"],
                              cwd=ROOT, stdout=out, stderr=subprocess.STDOUT, env=env, creationflags=DETACHED, close_fds=True)
-    open(PID, "w").write(str(p.pid))
+    open(PID, "w").write(str(p.pid))            # o loop reescreve com o proprio pid ao subir
     print(f"[vigia] loop de noticias iniciado, pid {p.pid}")
     return 0
 

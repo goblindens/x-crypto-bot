@@ -369,6 +369,18 @@ def main(argv=None) -> int:
         # segura o job por ate ~6 h; o workflow re-dispara a cada 6 h.
         import subprocess
         import time
+        # Nunca dois loops ao mesmo tempo (Windows: mutex nomeado; outros: arquivo de trava)
+        if sys.platform.startswith("win"):
+            import ctypes
+            ctypes.windll.kernel32.CreateMutexW(None, False, "Local\\x-crypto-bot-loop")
+            if ctypes.windll.kernel32.GetLastError() == 183:          # ERROR_ALREADY_EXISTS
+                print("[loop] ja existe um loop rodando nesta maquina; saindo")
+                return 0
+        os.makedirs(os.path.join(ROOT, "logs"), exist_ok=True)
+        try:
+            open(os.path.join(ROOT, "logs", "noticias.pid"), "w").write(str(os.getpid()))
+        except OSError:
+            pass
         fim = time.time() + args.minutos * 60
         posted = 0
         while time.time() < fim:

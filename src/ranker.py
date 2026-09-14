@@ -38,10 +38,23 @@ def score_article(article, config: dict) -> None:
     feed_cfg = next((f for f in news_cfg["feeds"] if f["name"] == article.source), {})
     if feed_cfg.get("grupo") == "macro":
         termos = news_cfg.get("macro_termos") or []
-        acerto = next((t for t in termos if has_term(title_only, t)), None)
-        if not acerto:
+        fortes = news_cfg.get("macro_fortes") or []
+        acertos = [t for t in termos if has_term(title_only, t)]
+        cripto = [t for t in ("bitcoin", "cripto", "crypto", "stablecoin", "ethereum", "etf", "blockchain", "btc", "eth") if has_term(haystack, t)]
+        forte = next((t for t in acertos if t in fortes), None)
+        # Passa se: fala de cripto; OU tem um termo forte (juros, tarifa, sancao, Ormuz...);
+        # OU junta dois termos fracos na manchete (Ira + missil). Um termo fraco
+        # sozinho ("war", "oil", "strike") nao basta -- e assim que entra "FTSE sobe
+        # com petroleo" e "drone na Russia" sem nada a ver com cripto (14/09/2026).
+        if cripto:
+            acerto = cripto[0]
+        elif forte:
+            acerto = forte
+        elif len(acertos) >= 2:
+            acerto = " + ".join(acertos[:2])
+        else:
             score = -60
-            reasons.append("macro sem termo que mexa com cripto")
+            reasons.append("macro sem termo que mexa com cripto" + (f" (so '{acertos[0]}')" if acertos else ""))
             article.score, article.reasons = score, reasons
             return
         score += 3
