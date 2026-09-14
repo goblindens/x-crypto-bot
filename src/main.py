@@ -69,10 +69,14 @@ def quota_gate(state: State, config: dict, force: bool) -> str:
     if force:
         return ""
     daily_cap = int(limits.get("max_posts_per_day", 8))
-    if state.posts_last_24h() >= daily_cap:
-        return f"teto diario atingido ({state.posts_last_24h()}/{daily_cap})"
+    # No modo prova nada e publicado, mas cada manchete "mostrada" gasta IA igual.
+    # Por isso o mostrado conta no teto e no espacamento (14/09/2026).
+    hoje = state.posts_last_24h() + state.mostrados_last_24h()
+    if hoje >= daily_cap:
+        return f"teto diario atingido ({hoje}/{daily_cap})"
     gap = limits.get("min_minutes_between_posts", 40)
-    since = state.minutes_since_last_post()
+    desde = [d for d in (state.minutes_since_last_post(), state.minutos_desde_ultimo_mostrado()) if d is not None]
+    since = min(desde) if desde else None
     if since is not None and since < gap:
         return f"ultimo post foi ha {since:.0f} min (minimo {gap} min)"
     return ""
@@ -95,6 +99,7 @@ def publicar_com_imagem(publisher, text: str, caminho_png: str, config: dict, st
     if not _imagens_valem(config):
         print(f"[mostrar] NAO publicado (imagens valem a partir de {(config.get('imagens') or {}).get('ligar_em')}):\n"
               f"  imagem: {caminho_png}\n{text}\n----------------------------------------")
+        state.registrar_mostrado()      # conta no teto/espacamento: o dia de prova gasta IA igual
         return "mostrar"
     try:
         if hasattr(publisher, "post_image"):                 # Threads: precisa de URL publica

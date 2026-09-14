@@ -71,6 +71,23 @@ class State:
         return any(p.get("kind") == kind for p in self.recent_posts(20))
 
     # -------------------------------------------------------------- escrita
+    # -------------------------------------------------------------- modo prova
+    # "mostrar" nao publica, mas CONSOME IA igual a um post de verdade. Sem contar
+    # aqui, o loop compunha o backlog inteiro (127 manchetes em meia hora, 14/09).
+    def registrar_mostrado(self) -> None:
+        self.data.setdefault("mostrados", []).append(now_utc().isoformat())
+
+    def mostrados_last_24h(self) -> int:
+        corte = now_utc() - timedelta(hours=24)
+        return sum(1 for ts in self.data.get("mostrados", []) if (_parse(ts) or now_utc()) >= corte)
+
+    def minutos_desde_ultimo_mostrado(self):
+        mostrados = self.data.get("mostrados") or []
+        if not mostrados:
+            return None
+        ultimo = max(filter(None, (_parse(ts) for ts in mostrados)), default=None)
+        return None if ultimo is None else (now_utc() - ultimo).total_seconds() / 60
+
     def mark_seen(self, url: str) -> None:
         self.data["seen"][url_hash(url)] = now_utc().isoformat()
 
