@@ -29,7 +29,9 @@ W, H = 1200, 900
 PRETO, PAINEL, LINHA, TEXTO, CINZA = (6, 8, 6), (12, 16, 12), (28, 36, 28), (236, 240, 236), (140, 150, 140)
 VERDE, VERDE_ESC, VERM, AMAR = (39, 201, 54), (16, 80, 24), (224, 81, 58), (245, 166, 35)
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGO = os.path.expanduser("~/SecretLab/Identidade Visual/secretlab_logo.png")
+LOGO = os.environ.get("SECRETLAB_LOGO") or os.path.expanduser("~/SecretLab/Identidade Visual/secretlab_logo.png")
+if not os.path.exists(LOGO):                                   # no GitHub e na VPS a logo vai junto com o codigo
+    LOGO = os.path.join(ROOT, "artes", "secretlab_logo.png")
 
 
 def _fonte(tam: int, negrito: bool = False):

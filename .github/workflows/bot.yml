@@ -124,7 +124,7 @@ jobs:
         run: |
           git config user.name  "bot-cripto"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          MIN=350; ARGS="--mode loop --a-cada 90"
+          MIN=350; ARGS="--mode loop --a-cada 30"
           if [ "$DRY" = "true" ]; then MIN=3; ARGS="$ARGS --dry-run"; fi
           echo "Executando: python -m src.main $ARGS --minutos $MIN"
           python -m src.main $ARGS --minutos $MIN
