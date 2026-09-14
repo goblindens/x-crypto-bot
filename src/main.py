@@ -106,6 +106,15 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             state.mark_seen(article.url)
             continue
 
+        # MODO VERIFICACAO (regra dele, 14/09/2026): numero ao vivo e fonte conferidos antes de sair.
+        from .verificador import verificar
+        ver = verificar(text, config)
+        if not ver["ok"]:
+            print("[verificacao] BLOQUEADO: " + " | ".join(ver["problemas"]))
+            state.mark_seen(article.url)
+            continue
+        print("[verificacao] OK")
+
         parc_cfg = config.get("parceiros") or {}
         eh_parceiro = bool(getattr(article, "parceiro", False))
         if eh_parceiro and not parc_cfg.get("ligado", False) and not publisher.dry_run:
@@ -147,6 +156,12 @@ def run_market(config: dict, state: State, publisher: Publisher, force: bool) ->
         return 0
 
     text = compose_market(snapshot, config)
+    from .verificador import verificar          # numeros conferidos ao vivo antes de sair (regra dele, 14/09)
+    ver = verificar(text, config)
+    if not ver["ok"]:
+        print("[verificacao] BLOQUEADO: " + " | ".join(ver["problemas"]))
+        return 0
+    print("[verificacao] OK")
     if not fits(text):
         print(f"[market] texto com {tweet_length(text)} caracteres; descartando")
         return 0
