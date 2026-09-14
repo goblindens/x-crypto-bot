@@ -154,18 +154,24 @@ def _artigos_recentes(config: dict, horas: int = 24) -> dict:
 
 def checar_fontes(texto: str, config: dict) -> list:
     problemas = []
-    cit = list(re.finditer(r"\(?\bvia\s+([A-Za-zÀ-ÿ0-9][^()\n]*?)\)?(?=\n|$|\))", texto))
-    if not cit:
-        return problemas
     recentes = _artigos_recentes(config)
     conhecidas = {k: v for k, v in recentes.items()}
+    # citacao "via Fonte" ou "(Fonte)" no fim do trecho -- so conta se parecer nome de fonte conhecida
+    cit = list(re.finditer(r"\(?\bvia\s+([A-Za-zÀ-ÿ0-9][^()\n]*?)\)?(?=\n|$|\))", texto))
+    for m in re.finditer(r"\(([A-Za-zÀ-ÿ][^()\n]{2,60})\)", texto):
+        nome = fold(m.group(1))
+        if any(k in nome or nome in k for k in conhecidas) and not any(c.start() == m.start() for c in cit):
+            cit.append(m)
+    cit.sort(key=lambda c: c.start())
+    if not cit:
+        return problemas
     for m in cit:
         nomes = [n.strip() for n in re.split(r",| e ", m.group(1)) if n.strip()]
         antes = texto[:m.start()]
         paragrafo = re.split(r"\n\s*\n", antes.strip())[-1] if antes.strip() else ""
-        # "(via A e B)" sozinho no fim do post = fonte do post inteiro
-        trecho = texto if (not paragrafo.strip() or len(paragrafo.strip()) < 15
-                           or re.fullmatch(r"\W*", paragrafo)) else paragrafo
+        # "(via A e B)" no comeco de uma linha (sozinho) = fonte do post inteiro
+        sozinho = antes.endswith("\n") or antes.endswith("\n(") or not paragrafo.strip() or len(paragrafo.strip()) < 15
+        trecho = texto if sozinho else paragrafo
         ancoras = _ancoras(trecho)
         for nome in nomes:
             chave = fold(nome)
@@ -178,7 +184,8 @@ def checar_fontes(texto: str, config: dict) -> list:
             melhor, melhor_titulo = 0, ""
             for a in arts:
                 alvo = fold(a.title + " " + a.summary)
-                acertos = sum(1 for anc in ancoras if anc in alvo)
+                # fonte em ingles: cada ancora vale tambem pela traducao (radical PT -> termos EN)
+                acertos = sum(1 for anc in ancoras if anc in alvo or any(en in alvo for en in _EN.get(anc, ())))
                 if acertos > melhor:
                     melhor, melhor_titulo = acertos, a.title
             minimo = 2 if len(ancoras) >= 4 else 1
@@ -186,6 +193,16 @@ def checar_fontes(texto: str, config: dict) -> list:
                 problemas.append(f"'{nome}': nada nas ultimas 24h sustenta \"{trecho.strip()[:80]}…\" (ancoras batidas: {melhor})")
     return problemas
 
+
+# radical PT (5 letras) -> termos em ingles que valem como a mesma ancora (fontes CoinDesk/Cointelegraph)
+_EN = {"acoes": ("stock",), "tecno": ("tech",), "corri": ("race",), "desac": ("slow",), "chefe": ("ceo", "chief", "head"),
+       "juros": ("rate", "interest"), "banco": ("bank",), "regul": ("regul",), "camar": ("house",), "senad": ("senate",),
+       "corre": ("exchange",), "fundo": ("fund",), "petro": ("oil",), "infla": ("inflat",), "dolar": ("dollar",),
+       "ouro": ("gold",), "cripto": ("crypto",), "carte": ("wallet",), "golpe": ("scam", "hack"), "invas": ("hack", "breach"),
+       "queda": ("drop", "fall", "selloff", "decline"), "subiu": ("climb", "rise", "gain", "up"), "sobe": ("climb", "rise"),
+       "ganha": ("gain",), "perde": ("shed", "lose", "outflow"), "sangr": ("shed", "outflow"), "votac": ("vote",), "votam": ("vote",),
+       "decid": ("decision", "decide"), "seman": ("week",), "pedir": ("call",), "pedid": ("call",), "pedir": ("call",), "peder": ("call",),
+       "pediu": ("call",), "pediram": ("call",), "segur": ("safety",), "intel": ("ai", "intelligence"), "ether": ("ether",)}
 
 _PARADAS = {"enquanto", "porque", "quando", "sobre", "entre", "depois", "antes", "ainda", "hoje", "ontem", "semana",
             "muito", "pouco", "outro", "outra", "mesmo", "mesma", "nesta", "neste", "ganhou", "ganhar", "chora", "bolha",
