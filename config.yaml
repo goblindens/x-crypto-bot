@@ -35,7 +35,7 @@ espelho:
   windows: []
 
 news:
-  max_age_hours: 10             # ignora noticia mais velha que isso
+  max_age_hours: 2              # so noticia fresca (dele, 14/09: "coisa antiga eu nao quero")
   min_score: 8                  # nota minima de relevancia para publicar (era 4; "apenas relevantes", 13/09/2026)
   exigir_assunto: true          # sem palavra de parceiro/alta/media, nao publica
   feeds:
