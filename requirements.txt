@@ -7,3 +7,4 @@ standard-imghdr; python_version >= "3.13"
 python-dateutil==2.9.0.post0
 anthropic>=0.60   # ligado em 13/09/2026 (composer.use_claude: true) -- traduz e resume; pago, centavos por post
 PyNaCl==1.5.0
+pillow>=10   # graficos proprios (src/grafico.py), 14/09/2026

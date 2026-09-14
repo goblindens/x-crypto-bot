@@ -130,13 +130,15 @@ def checar_numeros(texto: str) -> list:
                 continue
             if sym in vivo and abs(v - vivo[sym]["var"]) > 0.3:
                 problemas.append(f"{sym} variacao '{m.group(1)}%' nao bate com 24h ao vivo {vivo[sym]['var']:+.2f}%")
-    m = re.search(r"(medo\s*&\s*gan[aâ]ncia|m&g)[^\d\n]{0,20}(\d{1,3})", texto, re.I)
+    m = re.search(r"(medo\s*&\s*gan[aâ]ncia|m&g)([^\n.!?]{0,80})", texto, re.I)
     if m:
+        nums = [int(x) for x in re.findall(r"\b(\d{1,3})\b", m.group(2))]
         val, rot = fng_ao_vivo()
         if val is None:
             problemas.append("Medo & Ganancia: nao consegui conferir ao vivo")
-        elif int(m.group(2)) != val:
-            problemas.append(f"Medo & Ganancia '{m.group(2)}' nao bate com o indice ao vivo {val} ({rot})")
+        elif nums and val not in nums:
+            # a frase pode citar valores passados ("caiu de 74 pra 57"): o valor ao vivo tem que estar nela
+            problemas.append(f"Medo & Ganancia: a frase cita {nums} mas o indice ao vivo e {val} ({rot})")
     return problemas
 
 
