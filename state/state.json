@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 6
+    "2026-09": 7
   },
   "posts": [
     {
@@ -50,10 +50,18 @@
       "ts": "2026-09-13T23:07:11.708181+00:00",
       "tweet_id": "18094193120653126",
       "url": "https://www.criptofacil.com/bitcoin-ether-cpi-fed/"
+    },
+    {
+      "kind": "ranking",
+      "text": "O que a gente tá construindo aqui:\n\nUma comunidade de trading onde toda semana tem ranking,\no placar zera no domingo, e alguém da lista ganha o almoço.\n\nSorteio gravado. Ranking todo dia. Suporte direto.\nSem promessa de lucro — só gente operando junto.\n\nEssa semana: 8 na disputa.\n\nQuer participar? É de graça.\n👉 https://chat.whatsapp.com/ErFeZyBjel23uiNJirNDTp",
+      "title": "ranking da semana",
+      "ts": "2026-09-14T20:21:03.305191+00:00",
+      "tweet_id": "18136903324622924",
+      "url": "https://raw.githubusercontent.com/goblindens/x-crypto-bot/main/artes/ranking.png"
     }
   ],
   "seen": {
-    "1176fa13ad40c40a": "2026-09-13T17:33:44.528841+00:00",
+    "1176fa13ad40c40a": "2026-09-14T20:21:03.305238+00:00",
     "38e914194b2d6327": "2026-09-12T23:01:38.878682+00:00",
     "521d22fa6710b935": "2026-09-13T16:13:13.905460+00:00",
     "5bd0222d7a2836f0": "2026-09-13T23:07:11.708225+00:00",
