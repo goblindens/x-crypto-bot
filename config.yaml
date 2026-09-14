@@ -77,6 +77,12 @@ news:
       weight: 5
       lang: en
       parceiro: true
+    - name: Kraken                    # o blog passou a bloquear robo (403, 14/09): via Google News tambem
+      url: https://news.google.com/rss/search?q=site:blog.kraken.com+when:24h&hl=en-US&gl=US&ceid=US:en
+      weight: 5
+      lang: en
+      parceiro: true
+      googlenews: true
     # ---------------------------------------------------------------------
     # Fontes em ingles: DESLIGADAS por padrao. No modo template o bot nao
     # traduz -- a manchete sairia em ingles. Ligue (enabled: true) se voce
@@ -143,6 +149,36 @@ news:
       weight: 2
       lang: pt
       grupo: macro
+
+    # ---------------------------------------------------------------------
+    # AS PRINCIPAIS DO MUNDO (14/09/2026), via Google News RSS (elas nao abrem
+    # RSS proprio): manchete chega em minutos, fonte vem no titulo. Mesmo
+    # filtro macro: so o que mexe com cripto.
+    # ---------------------------------------------------------------------
+    - name: Reuters
+      url: https://news.google.com/rss/search?q=site:reuters.com+when:12h&hl=en-US&gl=US&ceid=US:en
+      weight: 5
+      lang: en
+      grupo: macro
+      googlenews: true
+    - name: Bloomberg
+      url: https://news.google.com/rss/search?q=site:bloomberg.com+when:12h&hl=en-US&gl=US&ceid=US:en
+      weight: 5
+      lang: en
+      grupo: macro
+      googlenews: true
+    - name: AP News
+      url: https://news.google.com/rss/search?q=site:apnews.com+when:12h&hl=en-US&gl=US&ceid=US:en
+      weight: 4
+      lang: en
+      grupo: macro
+      googlenews: true
+    - name: Financial Times
+      url: https://news.google.com/rss/search?q=site:ft.com+when:12h&hl=en-US&gl=US&ceid=US:en
+      weight: 4
+      lang: en
+      grupo: macro
+      googlenews: true
 
   # Manchete de fonte `grupo: macro` so passa se tiver um destes termos
   # (o que de fato move cripto: guerra, petroleo, juros, dolar, China, sancao)

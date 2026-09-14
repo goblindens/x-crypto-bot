@@ -46,6 +46,16 @@ def fetch_feed(feed_cfg: dict) -> list:
         title = (entry.get("title") or "").strip()
         if not link or not title:
             continue
+        if feed_cfg.get("googlenews"):
+            # agregador (Reuters, Bloomberg, AP, FT nao abrem RSS): o titulo vem "Manchete - Veiculo";
+            # so aceita o veiculo do proprio feed (Google mistura sindicacoes)
+            veiculo = (entry.get("source") or {}).get("title", "") if isinstance(entry.get("source"), dict) else ""
+            if " - " in title:
+                title, sufixo = title.rsplit(" - ", 1)
+                veiculo = veiculo or sufixo
+            if fold(feed_cfg["name"]).split()[0] not in fold(veiculo):
+                continue
+            title = title.strip()
         articles.append(
             Article(
                 title=title,

@@ -6,7 +6,7 @@ on:
     # Grade de 14/09/2026 (imagem em todo post): 8 posts/dia no Threads
     - cron: "0 10 * * *"                 # 07:00 BRT -- dado: mercado agora (card)
     - cron: "0 12 * * *"                 # 09:00 BRT -- dado: Medo & Ganancia (grafico)
-    - cron: "*/30 9-23,0 * * *"          # 06:00-21:30 BRT, a cada 30 min -- noticias (card de manchete); 14/09: "ser mais rapido que eles"
+    - cron: "5 */6 * * *"                # a cada 6 h -- TEMPO REAL: job continuo que olha os feeds a cada 90 s e publica na hora (14/09)
     - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
     - cron: "0 21 * * *"                 # 18:00 BRT -- dado: mais buscadas (card)
     - cron: "0 23 * * *"                 # 20:00 BRT -- dado: stablecoins (dia par) / hashrate (dia impar)
@@ -16,7 +16,7 @@ on:
       mode:
         description: "O que fazer"
         type: choice
-        options: [news, market, ranking, dado, refresh]
+        options: [news, market, ranking, dado, loop, refresh]
         default: news
       tipo:
         description: "modo dado: mercado | fng | trending | stable | hashrate | btc"
@@ -30,18 +30,17 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: bot-cripto
-  cancel-in-progress: false
-
 env:
   CRON_REFRESH: "30 6 * * 1"
 
 jobs:
   publicar:
-    if: github.event.schedule != '30 6 * * 1' && inputs.mode != 'refresh'
+    if: github.event.schedule != '30 6 * * 1' && github.event.schedule != '5 */6 * * *' && inputs.mode != 'refresh' && inputs.mode != 'loop'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: bot-cripto-publicar
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -93,6 +92,46 @@ jobs:
             echo "Nada mudou no estado."
             exit 0
           fi
+          git config user.name  "bot-cripto"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/state.json
+          git commit -m "chore: atualiza historico de posts [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+  tempo-real:
+    # Processo continuo (ate ~6 h por job; o cron re-dispara a cada 6 h). Olha os feeds a cada
+    # 90 s e publica na hora, 1 post por rodada, com card e verificador. Nunca dois ao mesmo tempo.
+    if: github.event.schedule == '5 */6 * * *' || inputs.mode == 'loop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    concurrency:
+      group: bot-cripto-tempo-real
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Rodar em tempo real
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: |
+          git config user.name  "bot-cripto"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          MIN=350; ARGS="--mode loop --a-cada 90"
+          if [ "$DRY" = "true" ]; then MIN=3; ARGS="$ARGS --dry-run"; fi
+          echo "Executando: python -m src.main $ARGS --minutos $MIN"
+          python -m src.main $ARGS --minutos $MIN
+      - name: Salvar historico (state.json)
+        if: always()
+        run: |
+          if [ -z "$(git status --porcelain state/state.json)" ]; then echo "Nada mudou no estado."; exit 0; fi
           git config user.name  "bot-cripto"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add state/state.json

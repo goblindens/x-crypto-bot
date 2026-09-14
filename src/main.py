@@ -326,8 +326,10 @@ def run_ranking(config: dict, state: State, publisher, force: bool, image_url: s
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Bot de noticias de cripto para o X")
-    parser.add_argument("--mode", choices=["news", "market", "ranking", "espelho", "dado"], default="news")
+    parser.add_argument("--mode", choices=["news", "market", "ranking", "espelho", "dado", "loop"], default="news")
     parser.add_argument("--tipo", default="mercado", help="modo dado: mercado|fng|trending|stable|hashrate|btc")
+    parser.add_argument("--minutos", type=int, default=350, help="modo loop: por quantos minutos ficar vivo")
+    parser.add_argument("--a-cada", dest="a_cada", type=int, default=90, help="modo loop: segundos entre olhadas nos feeds")
     parser.add_argument("--seed", action="store_true", help="modo espelho: marca os posts atuais do Instagram como vistos, sem publicar")
     parser.add_argument("--show", type=int, default=0, help="modo espelho: so mostra como ficariam os ultimos N posts do Instagram")
     parser.add_argument("--repeat", type=int, default=1, help="modo espelho: repete a verificacao N vezes na mesma execucao")
@@ -361,6 +363,36 @@ def main(argv=None) -> int:
         posted = run_market(config, state, publisher, args.force)
     elif args.mode == "dado":
         posted = run_dado(config, state, publisher, args.force, args.tipo)
+    elif args.mode == "loop":
+        # TEMPO REAL (dele, 14/09/2026: "soltar informacao em tempo real"): processo continuo
+        # que olha os feeds a cada N segundos e publica na hora, 1 por rodada. O GitHub Actions
+        # segura o job por ate ~6 h; o workflow re-dispara a cada 6 h.
+        import subprocess
+        import time
+        fim = time.time() + args.minutos * 60
+        posted = 0
+        while time.time() < fim:
+            try:
+                n = run_news(config, state, publisher, args.force, 1)
+            except Exception as exc:                       # feed fora, API fora: segue vivo
+                print(f"[loop] erro na rodada: {exc}")
+                n = 0
+            if not args.dry_run:
+                state.save()
+                if n and os.environ.get("GITHUB_ACTIONS"):   # guarda o historico no repo a cada post
+                    try:
+                        subprocess.run(["git", "-C", ROOT, "add", "state/state.json"], check=False)
+                        subprocess.run(["git", "-C", ROOT, "commit", "-q", "-m", "chore: historico (tempo real) [skip ci]"], check=False)
+                        subprocess.run(["git", "-C", ROOT, "pull", "--rebase", "--autostash", "-q", "origin", os.environ.get("GITHUB_REF_NAME", "main")], check=False)
+                        subprocess.run(["git", "-C", ROOT, "push", "-q", "origin", f"HEAD:{os.environ.get('GITHUB_REF_NAME', 'main')}"], check=False)
+                    except Exception as exc:
+                        print(f"[loop] nao guardei o historico agora: {exc}")
+            posted += n
+            if publisher.last_error:
+                print(f"[loop] erro de publicacao, pausando 10 min: {publisher.last_error}")
+                publisher.last_error = ""
+                time.sleep(600)
+            time.sleep(max(30, args.a_cada))
     elif args.mode == "ranking":
         posted = run_ranking(config, state, publisher, args.force, args.image_url, args.caption_file)
     elif args.mode == "espelho":
