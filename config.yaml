@@ -250,10 +250,6 @@ news:
   # Termos que sozinhos ja mexem com o mercado (passam na primeira). Os outros da lista
   # acima (war, oil, strike, china...) so passam em dupla na manchete (14/09/2026).
   macro_fortes:
-    - ormuz
-    - hormuz
-    - opec
-    - opep
     - sancao
     - sanção
     - sanction
