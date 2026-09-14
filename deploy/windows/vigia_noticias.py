@@ -29,8 +29,19 @@ def vivo(pid: int) -> bool:
     return bool(ok) and code.value == 259          # STILL_ACTIVE
 
 
+def loop_vivo() -> bool:
+    """O loop segura um mutex nomeado; se ele ja existe, tem loop rodando."""
+    h = ctypes.windll.kernel32.CreateMutexW(None, False, "Local\\x-crypto-bot-loop")
+    existe = ctypes.windll.kernel32.GetLastError() == 183          # ERROR_ALREADY_EXISTS
+    if h:
+        ctypes.windll.kernel32.CloseHandle(h)
+    return existe
+
+
 def main() -> int:
     os.makedirs(LOGS, exist_ok=True)
+    if loop_vivo():
+        return 0
     try:
         pid = int(open(PID).read().strip())
         if vivo(pid):
@@ -48,7 +59,8 @@ def main() -> int:
     except OSError:
         out = open(os.path.join(LOGS, f"noticias-{os.getpid()}.log"), "ab")
     with out:
-        p = subprocess.Popen([sys.executable, "-X", "utf8", "-m", "src.main", "--mode", "loop", "--a-cada", A_CADA, "--minutos", "525600"],
+        # -u: sem buffer, senao o log so aparece a cada 8 KB
+        p = subprocess.Popen([sys.executable, "-u", "-X", "utf8", "-m", "src.main", "--mode", "loop", "--a-cada", A_CADA, "--minutos", "525600"],
                              cwd=ROOT, stdout=out, stderr=subprocess.STDOUT, env=env, creationflags=DETACHED, close_fds=True)
     open(PID, "w").write(str(p.pid))            # o loop reescreve com o proprio pid ao subir
     print(f"[vigia] loop de noticias iniciado, pid {p.pid}")
