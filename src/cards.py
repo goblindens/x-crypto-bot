@@ -74,8 +74,8 @@ def destaque_numero(texto: str) -> str | None:
     melhor = None
     for m in _NUM.finditer(texto):
         moeda, num, uni = m.group(1) or "", m.group(2), (m.group(3) or "")
-        if not uni and not moeda and len(num.replace(".", "").replace(",", "")) < 4:
-            continue                                  # '15' de 'dia 15' nao e destaque
+        if not uni and not moeda:
+            continue                                  # numero solto ('2.200 palavras', 'dia 15') nao e destaque
         cand = f"{moeda} {num} {uni}".strip().replace("  ", " ")
         if melhor is None or len(cand) > len(melhor):
             melhor = cand
@@ -95,7 +95,11 @@ def card_manchete(manchete: str, fonte: str, saida: str, prefixo: str = "NOVO", 
         d.text((60, y), numero, font=_fonte(tam, True), fill=VERDE)
         y += tam + 40
     limpa = re.sub(r"[\U0001F1E6-\U0001F1FF\U0001F300-\U0001FAFF☀-➿]+", "", manchete).strip()
-    tam = 64 if len(limpa) <= 90 else (54 if len(limpa) <= 140 else 46)
+    if not numero:
+        y = 230                                       # sem numero em destaque: manchete maior e mais pro centro
+        tam = 80 if len(limpa) <= 80 else (66 if len(limpa) <= 130 else 54)
+    else:
+        tam = 64 if len(limpa) <= 90 else (54 if len(limpa) <= 140 else 46)
     f = _fonte(tam, True)
     for linha in _quebrar(limpa, f, W - 140, d)[:6]:
         d.text((60, y), linha, font=f, fill=TEXTO); y += int(tam * 1.22)
