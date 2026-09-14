@@ -73,6 +73,19 @@ def in_window(now_br: datetime, windows: list[str]) -> bool:
     return False
 
 
+TOLERANCIA_MIN = 15      # espera ate 15 min pelo arquivo (video recem-publicado ainda processando)
+
+
+def _minutos_desde(timestamp: str | None) -> float | None:
+    if not timestamp:
+        return None
+    try:
+        quando = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S%z")
+    except ValueError:
+        return None
+    return (datetime.now(timezone.utc) - quando).total_seconds() / 60
+
+
 def _first_image(ig: Instagram, item: dict) -> str | None:
     mtype = item.get("media_type")
     if mtype == "IMAGE":
@@ -165,7 +178,15 @@ def run_espelho(config: dict, state, publisher, force: bool, seed: bool = False,
             continue
         image_url = item.get("media_url") if is_video else _first_image(ig, item)
         if not image_url:
-            print(f"[espelho] pula {key}: sem midia")
+            # Reel com musica da biblioteca do Instagram volta sem o arquivo, so com a capa:
+            # nao da pra espelhar e nao adianta insistir (decisao dele, 14/09/2026: "o que nao
+            # der pra postar, nao postamos, e ficamos prontos pros proximos"). A tolerancia
+            # existe so pro video que ainda esta sendo processado logo depois de publicado.
+            idade = _minutos_desde(item.get("timestamp"))
+            if idade is not None and idade < TOLERANCIA_MIN:
+                print(f"[espelho] {key}: sem midia ainda ({idade:.0f} min de publicado); tenta no proximo ciclo")
+                continue
+            print(f"[espelho] pula {key}: sem midia (o Instagram nao libera o arquivo, provavel musica da biblioteca)")
             state.mark_seen(key)
             continue
 
