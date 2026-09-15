@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 11
+    "2026-09": 12
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -93,6 +93,14 @@
       "ts": "2026-09-15T04:58:24.025456+00:00",
       "tweet_id": "17868926097648708",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-015808.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇺🇸 Yield do Treasury de 10 anos sobe ao maior nível desde 2007 com venda de títulos antes da decisão do Fed sobre juros\n\n(CNBC World)",
+      "title": "10-year Treasury yield rises to highest since 2007 as Fed rate-hike expectations rise",
+      "ts": "2026-09-15T05:29:02.884565+00:00",
+      "tweet_id": "17934840603385924",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-022844.png"
     }
   ],
   "seen": {
@@ -204,6 +212,7 @@
     "cc8867e9692b30a5": "2026-09-14T22:00:25.091069+00:00",
     "ce300d2e533ca08d": "2026-09-14T21:37:34.197884+00:00",
     "d138c21ea13b9aea": "2026-09-15T03:02:18.665586+00:00",
+    "d205269362806df3": "2026-09-15T05:29:02.884610+00:00",
     "d85ee907ccd46ffa": "2026-09-14T23:14:22.878333+00:00",
     "db23cfaf9660acee": "2026-09-14T22:07:36.674607+00:00",
     "dbeca33ba16ba9a6": "2026-09-14T21:42:46.879116+00:00",
