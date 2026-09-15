@@ -26,6 +26,10 @@ on:
         description: "Somente simular (nao publica)"
         type: boolean
         default: true
+      force:
+        description: "Ignorar as travas (1 ranking/dado por dia, espacamento). So quando voce quer republicar de proposito."
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -68,8 +72,10 @@ jobs:
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '20 16 * * *' && 'ranking' || (github.event.schedule == '0 10 * * *' || github.event.schedule == '0 12 * * *' || github.event.schedule == '0 21 * * *' || github.event.schedule == '0 23 * * *') && 'dado' || 'news') }}
           TIPO: ${{ github.event_name == 'workflow_dispatch' && inputs.tipo || (github.event.schedule == '0 10 * * *' && 'mercado' || github.event.schedule == '0 12 * * *' && 'fng' || github.event.schedule == '0 21 * * *' && 'trending' || github.event.schedule == '0 23 * * *' && 'alternado' || 'mercado') }}
           DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
         run: |
           ARGS="--mode $MODE"
+          if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force"; fi
           if [ "$MODE" = "dado" ]; then
             if [ "$TIPO" = "alternado" ]; then
               # dia par = stablecoins, dia impar = hashrate
