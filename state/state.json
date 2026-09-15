@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 10
+    "2026-09": 11
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -85,6 +85,14 @@
       "ts": "2026-09-15T04:27:46.463129+00:00",
       "tweet_id": "18174695155431940",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-012729.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: Solana amplia limite de tamanho de transações em mais de 3 vezes, ganhando vantagem sobre Ethereum em capacidade de processamento\n\n(CoinDesk)",
+      "title": "Solana transactions just got more than 3 times bigger, giving an edge over Ethereum",
+      "ts": "2026-09-15T04:58:24.025456+00:00",
+      "tweet_id": "17868926097648708",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-015808.png"
     }
   ],
   "seen": {
@@ -142,6 +150,7 @@
     "6f4f213b0d30cc03": "2026-09-14T22:28:13.404827+00:00",
     "6fc49a347a931015": "2026-09-14T22:04:16.535961+00:00",
     "706764adab22d5e6": "2026-09-14T21:42:07.012692+00:00",
+    "72130f83d64a0482": "2026-09-15T04:58:24.025496+00:00",
     "72fae811b532697b": "2026-09-15T03:56:52.548631+00:00",
     "750507f688d1c53a": "2026-09-15T01:32:51.491766+00:00",
     "76c94ef919be6911": "2026-09-14T21:49:09.537481+00:00",
