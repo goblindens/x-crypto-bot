@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 18
+    "2026-09": 19
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -149,6 +149,14 @@
       "ts": "2026-09-15T12:07:26.756239+00:00",
       "tweet_id": "17891848701612611",
       "url": "https://raw.githubusercontent.com/goblindens/x-crypto-bot/main/artes/ranking.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: Bolsas da Ásia devem abrir em leve alta nesta quarta enquanto mercado aguarda decisão do Federal Reserve sobre juros\n\n(Bloomberg)",
+      "title": "Asian Stocks to Edge Higher as Traders Await Fed: Markets Wrap",
+      "ts": "2026-09-15T23:41:46.856847+00:00",
+      "tweet_id": "17884810821619503",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-204131.png"
     }
   ],
   "seen": {
@@ -306,6 +314,8 @@
     "f361fd12840b408a": "2026-09-15T00:14:44.406618+00:00",
     "f46f52b53c019f1e": "2026-09-15T01:20:41.515356+00:00",
     "f527e2d8c2681394": "2026-09-15T01:37:33.907739+00:00",
+    "f76948dbbdbf74c5": "2026-09-15T23:40:39.264021+00:00",
+    "f7fcd3f746790e79": "2026-09-15T23:41:46.856895+00:00",
     "fe01eee9e5c15934": "2026-09-14T22:26:52.715376+00:00",
     "ff1ea3115d42798b": "2026-09-14T22:17:09.165902+00:00",
     "ffcab9c0b78fb178": "2026-09-14T22:27:32.206820+00:00",
