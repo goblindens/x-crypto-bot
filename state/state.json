@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 12
+    "2026-09": 13
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -101,6 +101,14 @@
       "ts": "2026-09-15T05:29:02.884565+00:00",
       "tweet_id": "17934840603385924",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-022844.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: XRP Ledger fica a um voto de aprovar upgrade voltado a pagamentos na rede\n\n(CoinDesk)",
+      "title": "XRP Ledger is one vote away from starting its next big payments upgrade",
+      "ts": "2026-09-15T05:59:46.501771+00:00",
+      "tweet_id": "18125524237698327",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-025931.png"
     }
   ],
   "seen": {
@@ -217,6 +225,7 @@
     "db23cfaf9660acee": "2026-09-14T22:07:36.674607+00:00",
     "dbeca33ba16ba9a6": "2026-09-14T21:42:46.879116+00:00",
     "df4a07f4cb561200": "2026-09-14T21:48:34.956372+00:00",
+    "e11463f9dcd0a25e": "2026-09-15T05:59:46.501815+00:00",
     "e30cdc607afb7ee7": "2026-09-13T20:46:01.142238+00:00",
     "e3c2f8b0e998c361": "2026-09-15T02:49:09.329180+00:00",
     "e689af75f67e1b55": "2026-09-14T22:06:57.202604+00:00",
