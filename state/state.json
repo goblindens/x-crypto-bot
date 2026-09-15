@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 13
+    "2026-09": 14
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -109,6 +109,14 @@
       "ts": "2026-09-15T05:59:46.501771+00:00",
       "tweet_id": "18125524237698327",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-025931.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇪🇹 Etiópia reduz fornecimento de energia a mineradoras de bitcoin após El Niño afetar geração das hidrelétricas\n\n(Bloomberg)",
+      "title": "Ethiopia Cuts Bitcoin Miners’ Power Supply as El Niño Hurts Dams",
+      "ts": "2026-09-15T06:30:38.551716+00:00",
+      "tweet_id": "18099749543565307",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-033023.png"
     }
   ],
   "seen": {
@@ -181,6 +189,7 @@
     "881de6b8e74aa21f": "2026-09-14T23:46:20.596520+00:00",
     "8a74a77eed8fd51e": "2026-09-14T22:18:28.095879+00:00",
     "8c348bad28a5b51c": "2026-09-14T22:11:37.941985+00:00",
+    "8f8ed95de0cf9569": "2026-09-15T06:30:38.551760+00:00",
     "90a21ac289cd6518": "2026-09-14T21:44:38.612105+00:00",
     "95a96c9f9cd4ab98": "2026-09-14T22:10:58.620921+00:00",
     "978acc4fa8b58146": "2026-09-14T23:05:06.698874+00:00",
