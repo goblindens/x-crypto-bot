@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 9
+    "2026-09": 10
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -77,6 +77,14 @@
       "ts": "2026-09-15T03:56:52.548591+00:00",
       "tweet_id": "17909377521522519",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-005636.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: Exchange CoinEx encerra operações após 9 anos; cadastros são suspensos nesta terça e saques têm prazo até dezembro\n\n(BeInCrypto Brasil)",
+      "title": "CoinEx define prazo até dezembro para saques enquanto exchange encerra operações",
+      "ts": "2026-09-15T04:27:46.463129+00:00",
+      "tweet_id": "18174695155431940",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-012729.png"
     }
   ],
   "seen": {
@@ -98,6 +106,7 @@
     "2abf0b8829657270": "2026-09-14T22:15:39.930919+00:00",
     "2c8e5ed498ae2b6d": "2026-09-14T22:19:04.519297+00:00",
     "31014e305e8d2544": "2026-09-14T21:39:30.838007+00:00",
+    "33b14bd35ee0007f": "2026-09-15T04:27:46.463228+00:00",
     "351c571cf4485dc3": "2026-09-14T21:56:25.665380+00:00",
     "3560b4d85cd5249e": "2026-09-14T22:24:58.435033+00:00",
     "38e914194b2d6327": "2026-09-12T23:01:38.878682+00:00",
