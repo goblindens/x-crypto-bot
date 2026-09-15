@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 8
+    "2026-09": 9
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -69,6 +69,14 @@
       "ts": "2026-09-15T03:02:18.665544+00:00",
       "tweet_id": "17908936782507613",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-000200.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: Dólar opera perto de máxima de duas semanas com alta do petróleo pressionando juros e apostas de novo aumento do Fed\n\n(Reuters)",
+      "title": "Dollar near two-week high as oil surge lifts yields, Fed hike bets",
+      "ts": "2026-09-15T03:56:52.548591+00:00",
+      "tweet_id": "17909377521522519",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-005636.png"
     }
   ],
   "seen": {
@@ -125,6 +133,7 @@
     "6f4f213b0d30cc03": "2026-09-14T22:28:13.404827+00:00",
     "6fc49a347a931015": "2026-09-14T22:04:16.535961+00:00",
     "706764adab22d5e6": "2026-09-14T21:42:07.012692+00:00",
+    "72fae811b532697b": "2026-09-15T03:56:52.548631+00:00",
     "750507f688d1c53a": "2026-09-15T01:32:51.491766+00:00",
     "76c94ef919be6911": "2026-09-14T21:49:09.537481+00:00",
     "780a47637aa2e42f": "2026-09-14T23:37:24.294702+00:00",
