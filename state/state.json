@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 19
+    "2026-09": 20
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -157,6 +157,14 @@
       "ts": "2026-09-15T23:41:46.856847+00:00",
       "tweet_id": "17884810821619503",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260915-204131.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇺🇸 Mercados asiáticos abrem em queda cautelosa à espera da decisão do Fed sobre juros\n\n(Reuters)",
+      "title": "Asian markets make nervous start ahead of Fed decision",
+      "ts": "2026-09-16T03:03:00.113775+00:00",
+      "tweet_id": "18126452725830816",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-000243.png"
     }
   ],
   "seen": {
@@ -168,6 +176,7 @@
     "0e7a7711dfb4f6af": "2026-09-14T21:46:34.710913+00:00",
     "10fb52873081866c": "2026-09-15T07:36:15.502663+00:00",
     "1176fa13ad40c40a": "2026-09-15T12:07:26.756289+00:00",
+    "13f5f1d649c25eb8": "2026-09-16T03:03:00.113820+00:00",
     "18204cb4ec26d496": "2026-09-14T21:59:49.075539+00:00",
     "193038f1b98a3d65": "2026-09-15T07:42:12.967628+00:00",
     "1ef7ab6d6d789b93": "2026-09-14T21:51:02.350681+00:00",
