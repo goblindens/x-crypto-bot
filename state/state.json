@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 23
+    "2026-09": 24
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -197,9 +197,18 @@
       "ts": "2026-09-16T05:30:57.912411+00:00",
       "tweet_id": "18180031279424987",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-023043.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇺🇸 ETFs de Bitcoin registram saída de US$ 450 mi, maior desde junho, com Fidelity e BlackRock liderando resgates enquanto CLARITY Act trava no Senado\n\n(Cointelegraph)",
+      "title": "Bitcoin ETFs shed $450M in biggest outflow since June",
+      "ts": "2026-09-16T06:02:19.398437+00:00",
+      "tweet_id": "17909634612498194",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-030205.png"
     }
   ],
   "seen": {
+    "0408aed058b91e39": "2026-09-16T06:02:19.398484+00:00",
     "04e3538bb97f97a2": "2026-09-14T22:23:37.779723+00:00",
     "08f37f2c4ca705d1": "2026-09-15T08:13:46.516659+00:00",
     "09abd1f7da6a72ba": "2026-09-14T21:41:28.381178+00:00",
@@ -256,6 +265,7 @@
     "5cbd4099651975de": "2026-09-14T22:21:38.966437+00:00",
     "61041c86ea737076": "2026-09-15T07:40:58.057062+00:00",
     "62cdd0a7620f8def": "2026-09-14T21:40:11.123038+00:00",
+    "64010688252bd4dd": "2026-09-16T06:01:22.962099+00:00",
     "667a2f25ba4c6686": "2026-09-15T02:42:46.659574+00:00",
     "66983e5405216f27": "2026-09-16T04:52:18.261207+00:00",
     "6736a3eaa2773dcc": "2026-09-14T22:01:42.460792+00:00",
