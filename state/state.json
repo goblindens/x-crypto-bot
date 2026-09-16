@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 21
+    "2026-09": 22
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -173,6 +173,14 @@
       "ts": "2026-09-16T03:57:23.198743+00:00",
       "tweet_id": "17885297121684530",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-005707.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: Bitcoin cai com expectativa de novo aperto monetario do Federal Reserve pressionando ativos de risco\n\n(Bloomberg)",
+      "title": "Bitcoin Under Renewed Pressure as Looming Fed Hike Adds to Woes",
+      "ts": "2026-09-16T04:28:26.796614+00:00",
+      "tweet_id": "17957377212207469",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-012811.png"
     }
   ],
   "seen": {
@@ -187,6 +195,7 @@
     "13f5f1d649c25eb8": "2026-09-16T03:03:00.113820+00:00",
     "18204cb4ec26d496": "2026-09-14T21:59:49.075539+00:00",
     "193038f1b98a3d65": "2026-09-15T07:42:12.967628+00:00",
+    "1bb98a0ac528e309": "2026-09-16T04:28:26.796660+00:00",
     "1ef7ab6d6d789b93": "2026-09-14T21:51:02.350681+00:00",
     "207fc7c6e9cb0cdd": "2026-09-14T22:08:16.454350+00:00",
     "20c919c19c88e61b": "2026-09-14T22:32:47.544958+00:00",
