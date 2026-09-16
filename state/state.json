@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 20
+    "2026-09": 21
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -165,6 +165,14 @@
       "ts": "2026-09-16T03:03:00.113775+00:00",
       "tweet_id": "18126452725830816",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-000243.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: Ouro sobe enquanto mercado aguarda decisão de juros do Federal Reserve\n\n(Reuters)",
+      "title": "Gold gains with Fed rate decision in spotlight",
+      "ts": "2026-09-16T03:57:23.198743+00:00",
+      "tweet_id": "17885297121684530",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260916-005707.png"
     }
   ],
   "seen": {
@@ -208,6 +216,7 @@
     "48eba56268b6358c": "2026-09-14T22:31:34.393607+00:00",
     "49388e13086b6939": "2026-09-15T02:55:00.702351+00:00",
     "4b182bebb01911b5": "2026-09-14T22:01:04.138622+00:00",
+    "4b672f12834961a9": "2026-09-16T03:57:23.198790+00:00",
     "4e0e235aba34cd03": "2026-09-14T22:09:34.930257+00:00",
     "5104b97eafd6d1e8": "2026-09-14T21:38:50.216669+00:00",
     "521d22fa6710b935": "2026-09-13T16:13:13.905460+00:00",
