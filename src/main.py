@@ -73,12 +73,15 @@ def quota_gate(state: State, config: dict, force: bool, prioritario: bool = Fals
         return f"cota mensal atingida ({state.posts_this_month()}/{monthly_cap})"
     if force:
         return ""
-    daily_cap = int(limits.get("max_posts_per_day", 8))
-    # No modo prova nada e publicado, mas cada manchete "mostrada" gasta IA igual.
-    # Por isso o mostrado conta no teto e no espacamento (14/09/2026).
+    # SEM TETO EDITORIAL (dele, 17/09/2026): "nao tem limite, mas temos filtros
+    # de qualidade, de veracidade, de confiabilidade. Nao de post."
+    # O que segura a quantidade sao as travas de QUALIDADE (fonte tier 1, fato
+    # confirmado, assunto que nao repete, numero conferido). Este teto e alto e
+    # existe so contra defeito -- se algo quebrar e virar loop, ele para.
+    daily_cap = int(limits.get("max_posts_per_day", 100))
     hoje = state.posts_last_24h() + state.mostrados_last_24h()
     if hoje >= daily_cap and not prioritario:
-        return f"teto diario atingido ({hoje}/{daily_cap})"
+        return f"trava de seguranca: {hoje} posts em 24h (limite tecnico {daily_cap})"
     gap = limits.get("min_minutes_between_posts", 40)
     desde = [d for d in (state.minutes_since_last_post(), state.minutos_desde_ultimo_mostrado()) if d is not None]
     since = min(desde) if desde else None
