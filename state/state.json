@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 38
+    "2026-09": 39
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -325,6 +325,14 @@
       "ts": "2026-09-17T17:04:27.791390+00:00",
       "tweet_id": "17905460067550321",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-140412.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇬🇧 FCA fecha três operações P2P de criptomoedas no Reino Unido\n\nAção conjunta com Receita e Polícia Metropolitana mirou negócios sem licença para operar P2P.\n\nNa prática: Operar P2P sem licença na Inglaterra agora vira alvo direto de fiscalização.\n\n(Livecoins)",
+      "title": "Regulador britânico ordena encerramento de três operações P2P de criptomoedas",
+      "ts": "2026-09-17T17:15:49.097464+00:00",
+      "tweet_id": "17947975848056558",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-141535.png"
     }
   ],
   "seen": {
@@ -459,6 +467,7 @@
     "a7b20795bca09486": "2026-09-15T08:14:59.109237+00:00",
     "a8226ca2987627ea": "2026-09-14T22:10:15.744414+00:00",
     "a8481f555cff16af": "2026-09-14T22:08:54.052446+00:00",
+    "a8c97198d2fe4a25": "2026-09-17T17:15:49.097507+00:00",
     "a9ddc8b60596a0c2": "2026-09-16T05:30:01.427101+00:00",
     "aaaea9ddb0363040": "2026-09-15T08:29:23.210319+00:00",
     "ab2b4e3bc66fa222": "2026-09-17T03:04:11.052786+00:00",
@@ -524,6 +533,7 @@
     "e9e11d982bdd38a3": "2026-09-16T08:29:43.279472+00:00",
     "eaa1ec31902ffabe": "2026-09-14T22:04:59.128291+00:00",
     "eccedd62f71f8990": "2026-09-15T07:39:37.599193+00:00",
+    "ecdbd2aa3f2e5d06": "2026-09-17T17:14:56.941390+00:00",
     "ede60b737415ffc4": "2026-09-15T08:14:23.041558+00:00",
     "ede96bd6b7fff845": "2026-09-15T07:03:49.783394+00:00",
     "f072923d124488fa": "2026-09-16T07:43:34.495594+00:00",
