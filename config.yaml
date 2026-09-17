@@ -354,7 +354,7 @@ parceiros:
 # ---------------------------------------------------------------------------
 imagens:
   ligado: true
-  ligar_em: "2026-09-17"   # religado em 17/09 com trava de 2 fontes, 10 fontes e filtro novo
+  ligar_em: "2026-09-19"   # PAUSADO em 17/09 a pedido dele: "e um teste, antes de postar traga aqui". O bot gera e so MOSTRA no log.
   pasta: artes/auto
 
 composer:
