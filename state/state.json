@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 47
+    "2026-09": 48
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -397,6 +397,14 @@
       "ts": "2026-09-17T18:59:43.984679+00:00",
       "tweet_id": "18094643846402573",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-155928.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇺🇸 EUA sancionam corretora cripto ligada a financista iraniano\n\nTesouro diz que exchange processava pagamentos de operações no Estreito de Ormuz\n\n(Reuters)",
+      "title": "US sanctions Iranian financier's crypto exchange, says it processes Hormuz payments",
+      "ts": "2026-09-17T19:11:20.697987+00:00",
+      "tweet_id": "18332862082272495",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-161105.png"
     }
   ],
   "seen": {
@@ -538,6 +546,7 @@
     "95a96c9f9cd4ab98": "2026-09-14T22:10:58.620921+00:00",
     "978acc4fa8b58146": "2026-09-14T23:05:06.698874+00:00",
     "97f2a5488acc114e": "2026-09-14T22:29:32.249561+00:00",
+    "982baea57b59f9fa": "2026-09-17T19:10:24.278303+00:00",
     "99531bea5469ee7f": "2026-09-14T21:38:09.843447+00:00",
     "9a05afd03d38106a": "2026-09-16T23:42:06.894039+00:00",
     "9c0f138eed404e3d": "2026-09-15T01:45:13.195976+00:00",
@@ -561,6 +570,7 @@
     "aca0c03cc011ea8e": "2026-09-14T23:57:35.947858+00:00",
     "b0243a883f9f3b2b": "2026-09-16T07:47:39.614923+00:00",
     "b02df15670f84b6b": "2026-09-15T07:38:10.013139+00:00",
+    "b08b4d35cf69f242": "2026-09-17T19:11:20.698025+00:00",
     "b1901b73dde44fd7": "2026-09-14T21:50:25.382324+00:00",
     "b39e3024dcafd2f9": "2026-09-14T22:02:24.325672+00:00",
     "b431ea497743c593": "2026-09-14T21:52:58.492107+00:00",
