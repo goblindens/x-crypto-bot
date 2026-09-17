@@ -191,6 +191,18 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
         # mediana -- esperar mata a noticia. Entao: fonte tier 1 publica na hora;
         # acusacao/polemica espera confirmacao; o numero e sempre conferido ao
         # vivo pelo verificador logo abaixo.
+        # A MATERIA E DE AGORA? (regra dele, 17/09/2026: "verifique primeiro se
+        # a noticia e atual"). A janela de 6 h olha a hora de PUBLICACAO, e
+        # jornal republica fato velho com hora nova. Caso que abriu a trava:
+        # "Governo da Polonia perdeu US$ 230 mi em cripto" saiu ha 2 h, e o
+        # proprio resumo diz que o caso foi entre 2023 e marco de 2024.
+        from .atualidade import checar as checar_atualidade
+        atual = checar_atualidade(article, (config.get("news") or {}).get("max_age_hours", 6))
+        if not atual["ok"]:
+            print(f"[atualidade] BARRADO: {atual['motivo']}")
+            state.mark_seen(article.url)
+            continue
+
         from .confirmacao import avaliar
         conf = avaliar(article, articles, config)
         if not conf["ok"]:

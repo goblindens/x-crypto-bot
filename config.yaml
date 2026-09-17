@@ -47,6 +47,13 @@ news:
   horas_sem_repetir: 2          # so bloqueia DUPLICATA (mesmo fato). Tema repetido com fato novo passa (17/09)
   tier1: [coindesk, the block, reuters, bloomberg, cointelegraph, portal do bitcoin, livecoins]
   exigir_assunto: true          # sem palavra de parceiro/alta/media, nao publica
+  # COMO O POST E ESCRITO. "gancho" = o de 17/09 (gancho · fato · provocacao ·
+  # (Fonte)). "curto" = o modelo do AshCrypto, medido em 17/09: fato + reacao,
+  # ate 120 caracteres, SEM link e SEM o veiculo entre parenteses -- quem ancora
+  # o fato e o ator ("a SEC liberou"). Ver Frentes/1-x-noticias.md.
+  # DESLIGADO ate ele aprovar os posts na tela. Trocar aqui, nao no codigo.
+  formato: gancho               # gancho | curto
+  teto_caracteres: 120          # so vale no formato curto
   # ------------------------------------------------------------------
   # AS 10 FONTES (decisao dele, 17/09/2026). Eram 25 e o robo escolhia por
   # nota, nao por importancia -- foi assim que cobre e armas orbitais entraram.

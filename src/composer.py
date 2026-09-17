@@ -207,6 +207,58 @@ _SCHEMA = {
     "additionalProperties": False,
 }
 
+# ---------------------------------------------------------------------------
+# FORMATO CURTO (17/09/2026). Medido nas duas maiores contas de noticia de
+# cripto do X, no mesmo dia e sobre o mesmo fato (SEC libera acao tokenizada):
+#
+#   @AshCrypto      2,16 mi seg | mediana 1.760 likes | 0% link | 139 chars
+#   @Cointelegraph  2,93 mi seg | mediana   110 likes | 10% link
+#
+# AshCrypto tem 26% MENOS seguidores e faz 16x mais like. As tres diferencas:
+#   1. zero link (na Cointelegraph, link custa 3,4x)
+#   2. cita QUEM FEZ, nunca o jornal -- veiculo de imprensa aparece 0 vezes em
+#      39 posts, e citar a pessoa nao custa engajamento (1.750 x 1.760)
+#   3. curto -- na conta dele, 41-120 chars rende 1.980 e 161+ rende 1.149
+#
+# O veiculo so fica quando a apuracao E o fato ("apurou o FT", "segundo a
+# Bloomberg") -- ai tirar o nome transforma reportagem em boato.
+# ---------------------------------------------------------------------------
+_SCHEMA_CURTO = {
+    "type": "object",
+    "properties": {
+        "fato": {
+            "type": "string",
+            "description": (
+                "ATE 95 caracteres. O fato numa frase, comecando por QUEM FEZ -- o orgao, "
+                "a empresa, o governo, a pessoa. Ex.: 'A SEC liberou negociacao de acoes "
+                "tokenizadas nos EUA.' NUNCA cite o jornal aqui."
+            ),
+        },
+        "reacao": {
+            "type": "string",
+            "description": (
+                "ATE 45 caracteres. Uma linha de torcida, nao de analista: o que isso "
+                "significa pra quem esta do lado de dentro. Ex.: 'Sem esperar o Congresso.' "
+                "Deixe VAZIO se nao houver nada concreto a dizer."
+            ),
+        },
+        "apuracao_exclusiva": {
+            "type": "boolean",
+            "description": (
+                "true SO quando o fato existe porque o veiculo apurou -- furo, documento "
+                "obtido, 'fontes disseram ao jornal'. Ato oficial (SEC aprovou, Tesouro "
+                "sancionou, empresa anunciou) e false, mesmo que so um jornal tenha dado."
+            ),
+        },
+        "publicar": {
+            "type": "boolean",
+            "description": "false se a materia for irrelevante, publicidade ou nao verificavel.",
+        },
+    },
+    "required": ["fato", "reacao", "apuracao_exclusiva", "publicar"],
+    "additionalProperties": False,
+}
+
 # Travas da linha de reacao. Se qualquer uma casar, a linha cai e o post sai
 # so com manchete + resumo -- o fato nunca e perdido por causa da opiniao.
 _PROIBIDO_NA_PRATICA = (
@@ -235,6 +287,12 @@ def _compose_news_with_claude(article, config: dict):
     style = config.get("style", {})
     model = config.get("anthropic", {}).get("model", "claude-opus-5")
     effort = config.get("anthropic", {}).get("effort", "low")
+
+    # O formato so muda com o config dizendo. O padrao continua sendo o de
+    # 17/09 (gancho · fato · provocacao) -- ninguem troca o jeito de escrever
+    # da conta dele por deploy.
+    if (config.get("news") or {}).get("formato", "gancho") == "curto":
+        return _compor_curto(article, config, model, effort, style)
 
     system = (
         "Voce escreve posts curtos de noticias de cripto e mercado financeiro para o X, "
@@ -339,6 +397,103 @@ def _compose_news_with_claude(article, config: dict):
             gancho = ""
         else:
             break
+    return None
+
+
+def _compor_curto(article, config: dict, model: str, effort: str, style: dict):
+    """Formato curto (ver _SCHEMA_CURTO): fato + reacao, ate 120 caracteres.
+
+    O veiculo NAO entra no texto -- quem ancora o fato e o ator ("a SEC
+    liberou", "o Tesouro sancionou"), que e mais checavel que o nome de um site.
+    A unica excecao e a apuracao exclusiva, em que o jornal E o fato.
+    A verificacao nao mudou de lugar: continua no verificador.py, que desde
+    17/09 confere post SEM fonte no texto tambem.
+    """
+    import json
+
+    try:
+        import anthropic
+    except ImportError:
+        print("[composer] pacote anthropic nao instalado -- usando template")
+        return None
+
+    system = (
+        "Voce escreve posts curtos de noticia de cripto para o X, em portugues do Brasil.\n"
+        f"Tom: {style.get('voice', 'direto, com voz propria')}\n"
+        "\n"
+        "O MOLDE -- duas linhas, no maximo 120 caracteres somados:\n"
+        "  fato   -> uma frase, comecando por QUEM FEZ.\n"
+        "            Bom:  'A SEC liberou negociacao de acoes tokenizadas nos EUA.'\n"
+        "            Ruim: 'SEC publica orientacao sobre tokenizacao, diz CoinDesk.'\n"
+        "  reacao -> uma linha de torcida, nao de analista.\n"
+        "            Bom:  'Sem esperar o Congresso.' / 'Tem gente que erra em escala.'\n"
+        "            Ruim: 'Vale acompanhar.' / 'O mercado reage.' / 'Isso e importante.'\n"
+        "\n"
+        "REGRAS RIGIDAS:\n"
+        "- NUNCA cite o nome do jornal no texto. Quem ancora o fato e o ATOR: o orgao, a\n"
+        "  empresa, o governo, a pessoa que falou. 'A SEC aprovou' e checavel; '(CoinDesk)'\n"
+        "  so e checavel por quem for ao CoinDesk.\n"
+        "- EXCECAO: se o fato so existe porque o veiculo apurou (furo, documento obtido,\n"
+        "  'fontes disseram ao jornal'), marque apuracao_exclusiva=true e cite o veiculo\n"
+        "  DENTRO da frase: 'O Financial Times revelou que...'. Ato oficial nao e apuracao.\n"
+        "- PROIBIDO dizer para onde o preco vai, em qualquer forma. PROIBIDO recomendar\n"
+        "  compra ou venda. PROIBIDO chamar alguem de golpista ou criminoso sem decisao\n"
+        "  judicial. PROIBIDO prometer resultado.\n"
+        "- A reacao e sobre CONDUTA, sobre quem ganha ou perde acesso, sobre o que passa a\n"
+        "  ser permitido ou proibido. NUNCA sobre preco futuro.\n"
+        "- PROIBIDO frase generica de encher linguica. Sem nada concreto, reacao VAZIA.\n"
+        "- Nao invente numero, nome ou fato que nao esteja no material.\n"
+        "- NUNCA repita o preco atual de BTC/ETH/SOL da manchete (muda a cada minuto).\n"
+        "  Valores de fluxo, compra, liquidacao, multa e ETF podem aparecer.\n"
+        "- Sem hashtag, sem link, sem 'NOVO:', sem 'URGENTE:'.\n"
+        "- Se um pais for central, comece com a bandeira dele (emoji).\n"
+        "- Se o material for propaganda, especulacao de preco, pagina de indice de portal\n"
+        "  ('Trending News', 'Latest Updates'), resumao do dia ('what happened today') ou\n"
+        "  irrelevante, responda publicar=false."
+    )
+    user = (f"Fonte: {article.source}\n"
+            f"Manchete: {article.title}\n"
+            f"Resumo: {article.summary[:500]}")
+    params = {
+        "model": model, "max_tokens": 2000, "system": system,
+        "messages": [{"role": "user", "content": user}],
+        "output_config": {"format": {"type": "json_schema", "schema": _SCHEMA_CURTO}, "effort": effort},
+    }
+
+    client = anthropic.Anthropic()
+    try:
+        try:
+            response = client.beta.messages.create(
+                betas=["server-side-fallback-2026-07-01"], fallbacks="default", **params)
+        except TypeError:
+            response = client.messages.create(**params)
+        if getattr(response, "stop_reason", None) == "refusal":
+            print("[composer] modelo recusou a materia -- usando template")
+            return None
+        data = json.loads(next(b.text for b in response.content if b.type == "text"))
+    except Exception as exc:
+        print(f"[composer] Claude indisponivel ({type(exc).__name__}: {exc}) -- usando template")
+        return None
+
+    if not data.get("publicar"):
+        print(f"[composer] Claude marcou como nao publicavel: {article.title[:60]}")
+        return "SKIP"
+
+    fato = (data.get("fato") or "").strip()
+    reacao = _peneirar_reacao((data.get("reacao") or "").strip(), article)
+    if not fato:
+        return None
+
+    # O veiculo so volta ao texto quando a apuracao E o fato. E se o modelo
+    # marcou apuracao mas esqueceu de citar o jornal na frase, o nome entra.
+    if data.get("apuracao_exclusiva") and fold(article.source) not in fold(fato):
+        fato = f"{fato.rstrip('.')}, segundo o {article.source}."
+
+    teto = int((config.get("news") or {}).get("teto_caracteres", 120))
+    for corpo in ("\n\n".join(p for p in (fato, reacao) if p), fato):
+        if tweet_length(corpo) <= teto:
+            return corpo
+    print(f"[composer] fato nao coube em {teto} caracteres: {fato[:60]}")
     return None
 
 

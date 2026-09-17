@@ -16,7 +16,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from datetime import timedelta                                  # noqa: E402
+
+from src.atualidade import checar as checar_atualidade          # noqa: E402
 from src.confirmacao import _mesmo_assunto                      # noqa: E402
+from src.util import now_utc                                    # noqa: E402
 from src.verificador import _conferir, checar_proibidas         # noqa: E402
 
 
@@ -91,6 +95,39 @@ FATOS_DIFERENTES = [
 ]
 
 
+class Materia:
+    """Materia de mentira com hora, pra trava de atualidade."""
+
+    def __init__(self, title, summary="", horas=1.0):
+        self.title, self.summary = title, summary
+        self.published = now_utc() - timedelta(hours=horas)
+
+
+# (nome, materia, tem_que_passar) -- "a noticia e de agora?" (regra dele, 17/09)
+ATUALIDADE = [
+    ("materia de 1 h, fato de agora",
+     Materia("SEC libera negociacao de acoes tokenizadas nos EUA",
+             "A decisao foi publicada hoje pela comissao.", horas=1), True),
+    ("ano antigo como REFERENCIA ('desde julho de 2023')",
+     Materia("Bitcoin coils near $76.5K as US stocks rebound from Fed rate hike",
+             "The US Federal Reserve's first interest-rate hike since July 2023.", horas=1), True),
+    ("hora adiantada (embargo/fuso) -- 8 de 38 materias reais vem assim",
+     Materia("US sanctions Iranian crypto exchange BitBank",
+             "Treasury designated the exchange today.", horas=-2), True),
+    ("fato velho republicado hoje",
+     Materia("Governo da Polonia perdeu US$ 230 milhoes em criptomoedas, diz FT",
+             "O caso aconteceu entre o fim de 2023 e marco de 2024 e ja havia sido noticiado.",
+             horas=1), False),
+    ("retrospectiva",
+     Materia("Relembre o maior hack de exchange da historia",
+             "Relembre o que aconteceu naquele ano.", horas=1), False),
+    ("materia velha demais",
+     Materia("SEC libera negociacao de acoes tokenizadas", "", horas=30), False),
+    ("feed com hora muito errada",
+     Materia("SEC libera negociacao de acoes tokenizadas", "", horas=-48), False),
+]
+
+
 def main() -> int:
     falhas = []
 
@@ -117,6 +154,18 @@ def main() -> int:
         print(f"  {'ok  ' if ok else 'FALHA'} [bloquear] {nome}")
         if not ok:
             falhas.append(nome)
+
+    print("\n== ATUALIDADE: a noticia e de agora, ou e fato velho de hoje? ==")
+    for nome, mat, deve_passar in ATUALIDADE:
+        r = checar_atualidade(mat, 6)
+        ok = r["ok"] == deve_passar
+        esperado = "passar" if deve_passar else "bloquear"
+        print(f"  {'ok  ' if ok else 'FALHA'} [{esperado:>8}] {nome}")
+        if not ok:
+            falhas.append(nome)
+            print(f"         -> {r['motivo'] or 'passou e nao devia'}")
+        elif r["motivo"]:
+            print(f"         ({r['motivo']})")
 
     print("\n== CONFIRMACAO: a mesma noticia em veiculos diferentes ==")
     for i in range(len(MESMO_FATO)):
