@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 35
+    "2026-09": 36
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -301,6 +301,14 @@
       "ts": "2026-09-17T09:08:24.662268+00:00",
       "tweet_id": "18635901385043441",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-060809.png"
+    },
+    {
+      "kind": "news",
+      "text": "URGENTE: 🇺🇸 Bitcoin sobe após decisão de juros do Fed; Zcash dispara mais de 20% no dia\n\n(Portal do Bitcoin)",
+      "title": "Bitcoin hoje: BTC sobe após alta de juros do Fed e Zcash dispara mais de 20%",
+      "ts": "2026-09-17T12:09:53.217208+00:00",
+      "tweet_id": "18110300021137102",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-090936.png"
     }
   ],
   "seen": {
@@ -405,6 +413,7 @@
     "8221adbb96aaaaa5": "2026-09-15T01:40:38.123839+00:00",
     "82b1af0203650421": "2026-09-15T08:27:42.524584+00:00",
     "858286a35aab5c95": "2026-09-14T21:45:53.123675+00:00",
+    "8710be088f162830": "2026-09-17T12:09:53.217247+00:00",
     "881de6b8e74aa21f": "2026-09-14T23:46:20.596520+00:00",
     "88dfbf0dc7574d00": "2026-09-16T06:33:59.945369+00:00",
     "894750de51d3cd68": "2026-09-16T08:30:19.751195+00:00",
