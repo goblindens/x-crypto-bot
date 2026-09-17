@@ -157,31 +157,45 @@ def _claude_enabled(config: dict) -> bool:
     return True
 
 
-# FORMATO ESCOLHIDO POR ELE EM 16/09/2026 (modelo Cointelegraph):
-# manchete em cima, resumo curto embaixo, "Na pratica" e fonte no fim.
+# FORMATO APROVADO POR ELE EM 17/09/2026 -- posicao primeiro, manchete depois.
 #
-# A linha "na_pratica" e a REACAO que ele pediu em 17/09 ("uma reacao tem que
-# ser validada, com noticia real, contexto e informacoes reais -- nao podemos
-# correr risco de falar merda"). As travas dela estao em `_PROIBIDO_NA_PRATICA`
-# e no system prompt: fala do que MUDA para quem opera, nunca de preco futuro,
-# nunca acusa ninguem. Quando a linha nao passa nas travas, o post sai sem ela.
+# Mudou porque a manchete seca nao rende: mediana de 479 impressoes contra 4.577
+# do meme espelhado do Instagram, e 51 dos 60 ultimos posts sem UMA resposta.
+# Pesquisa do nicho diz a mesma coisa: "manchete sem posicao" esta na lista do
+# que o algoritmo ignora; o que rende e reacao rapida que nomeia o catalisador,
+# toma posicao e convida discordancia.
+#
+# Ele aprovou este molde:
+#     O Congresso travou e a SEC resolveu sozinha.        <- gancho (posicao)
+#     Sem o Clarity Act aprovado, o regulador soltou...    <- fato
+#     Regra feita por quem fiscaliza, nao por quem legisla.
+#     Isso te deixa mais tranquilo ou menos?               <- provocacao
+#     (Bloomberg)
 _SCHEMA = {
     "type": "object",
     "properties": {
-        "manchete": {
-            "type": "string",
-            "description": "A manchete, uma linha, ate 100 caracteres. Fato direto, sem adjetivo, sem opiniao.",
-        },
-        "resumo": {
-            "type": "string",
-            "description": "1 frase curta (ATE 90 caracteres) com o que a manchete nao coube: quem, quanto, quando.",
-        },
-        "na_pratica": {
+        "gancho": {
             "type": "string",
             "description": (
-                "ATE 80 caracteres. O que esse fato MUDA para quem opera ou para o mercado. "
-                "Consequencia concreta, nao palpite de preco. Deixe VAZIO se o fato nao mudar "
-                "nada de concreto -- linha generica nao serve."
+                "ATE 65 caracteres. A primeira linha, com ANGULO -- nao e a manchete. "
+                "Diz o que aconteceu do jeito que um humano comentaria em voz alta. "
+                "Ex.: 'O Congresso travou e a SEC resolveu sozinha.'"
+            ),
+        },
+        "fato": {
+            "type": "string",
+            "description": (
+                "ATE 105 caracteres. O que aconteceu, com quem/quanto/onde. E aqui que "
+                "mora a informacao verificavel. Sem adjetivo, sem opiniao."
+            ),
+        },
+        "provocacao": {
+            "type": "string",
+            "description": (
+                "ATE 85 caracteres. Uma leitura curta do fato + uma pergunta que DIVIDE "
+                "opiniao (nao 'o que voce acha?'). Ex.: 'Regra feita por quem fiscaliza, "
+                "nao por quem legisla. Isso te deixa mais tranquilo ou menos?'. "
+                "Deixe VAZIO se nao houver leitura concreta -- frase generica nao serve."
             ),
         },
         "publicar": {
@@ -189,7 +203,7 @@ _SCHEMA = {
             "description": "false se a materia for irrelevante, publicidade ou nao verificavel.",
         },
     },
-    "required": ["manchete", "resumo", "na_pratica", "publicar"],
+    "required": ["gancho", "fato", "provocacao", "publicar"],
     "additionalProperties": False,
 }
 
@@ -227,23 +241,30 @@ def _compose_news_with_claude(article, config: dict):
         "em portugues do Brasil.\n"
         f"Tom: {style.get('voice', 'direto e informativo')}\n"
         "Regras rigidas:\n"
-        "- Devolva TRES campos: 'manchete' (1 linha, ate 100 caracteres, fato direto), "
-        "'resumo' (1 frase, ate 90 caracteres) e 'na_pratica' (ate 80 caracteres).\n"
-        "- Os tres somados nao podem passar de 250 caracteres.\n"
-        "- O resumo NAO repete a manchete palavra por palavra: ele acrescenta o que a "
-        "manchete nao coube -- numeros, contexto, quem esta envolvido.\n"
+        "- Devolva TRES campos: 'gancho' (ate 65 caracteres), 'fato' (ate 105) e "
+        "'provocacao' (ate 85). Somados, no maximo 250 caracteres.\n"
         "\n"
-        "SOBRE 'na_pratica' -- e a unica linha de leitura propria do post:\n"
-        "- Diga o que esse fato MUDA, de concreto: o que passa a ser permitido ou proibido, "
-        "quem ganha ou perde acesso, que custo ou prazo muda, que porta abre ou fecha.\n"
-        "- Pode julgar CONDUTA de empresa, projeto, banco, corretora ou governo. "
-        "Exemplo bom: 'Banco grande dizendo que uma moeda sobe 70x nao e analise, e folheto.'\n"
+        "O MOLDE (aprovado por ele em 17/09/2026):\n"
+        "  gancho     -> a primeira linha, com ANGULO. NAO repita a manchete: diga o que\n"
+        "                aconteceu do jeito que uma pessoa comentaria em voz alta.\n"
+        "                Bom:  'O Congresso travou e a SEC resolveu sozinha.'\n"
+        "                Ruim: 'SEC publica orientacao sobre tokenizacao de acoes.'\n"
+        "  fato       -> quem, quanto, onde. E aqui que mora a informacao verificavel.\n"
+        "                Sem adjetivo seu.\n"
+        "  provocacao -> uma leitura curta + uma pergunta que DIVIDE opiniao.\n"
+        "                Bom:  'Regra feita por quem fiscaliza, nao por quem legisla. "
+        "Isso te deixa mais tranquilo ou menos?'\n"
+        "                Ruim: 'O que voce acha?' / 'Vale acompanhar.'\n"
+        "\n"
+        "- A posicao do gancho e da provocacao e sobre CONDUTA (de orgao, empresa, banco, "
+        "projeto, governo) ou sobre o que MUDA de concreto. NUNCA sobre preco futuro.\n"
+        "- Pode julgar conduta. Exemplo bom: 'Banco grande dizendo que uma moeda sobe 70x "
+        "nao e analise, e folheto.'\n"
         "- PROIBIDO dizer para onde o preco vai, em qualquer forma ('vai subir', 'deve cair', "
         "'projeta', 'alvo de'). PROIBIDO recomendar compra ou venda. PROIBIDO chamar alguem de "
         "golpista ou criminoso sem decisao judicial. PROIBIDO prometer resultado.\n"
         "- PROIBIDO frase generica de encher linguica ('vale acompanhar', 'fique de olho', "
-        "'o mercado reage', 'momento importante'). Se voce nao tem uma consequencia concreta "
-        "para dizer, devolva na_pratica VAZIO. Linha vazia e melhor que linha vazia de sentido.\n"
+        "'o mercado reage', 'momento importante'). Sem leitura concreta, provocacao VAZIA.\n"
         "- Se um pais for central, comece com a bandeira dele (emoji), ex.: '🇺🇸 Senado vota...'.\n"
         "- Nao traduza nomes proprios; converta valores em ingles pra formato BR (US$ 463 mi, 85%).\n"
         "- NUNCA repita o preco atual de BTC/ETH/SOL que estiver na manchete (ele muda a cada minuto e "
@@ -290,37 +311,35 @@ def _compose_news_with_claude(article, config: dict):
         print(f"[composer] Claude marcou como nao publicavel: {article.title[:60]}")
         return "SKIP"
 
-    manchete = (data.get("manchete") or "").strip()
-    resumo = (data.get("resumo") or "").strip()
-    na_pratica = (data.get("na_pratica") or "").strip()
-    if not manchete:
+    gancho = (data.get("gancho") or "").strip()
+    fato = (data.get("fato") or "").strip()
+    provocacao = (data.get("provocacao") or "").strip()
+    if not fato:
         return None
 
-    na_pratica = _peneirar_reacao(na_pratica, article)
+    # A opiniao (gancho e provocacao) passa pelas peneiras; o FATO nunca cai --
+    # e ele que sustenta o post. Se a opiniao for reprovada, sai so o fato.
+    gancho = _peneirar_reacao(gancho, article)
+    provocacao = _peneirar_reacao(provocacao, article)
 
-    hashtags = pick_hashtags(" ".join([manchete, resumo]) or article.title, config)
-    tail = f"\n\n({article.source})"      # so o nome da fonte, entre parenteses, sem link (regra dele)
+    hashtags = pick_hashtags(" ".join([gancho, fato]) or article.title, config)
+    tail = f"\n\n({article.source})"   # so o nome da fonte, sem link (regra dele)
     if hashtags:
         tail += f"\n\n{hashtags}"
 
-    # Ordem de sacrificio quando falta espaco: primeiro a reacao, depois o
-    # resumo. A MANCHETE NUNCA E CORTADA -- o fato nunca sai pela metade.
-    if na_pratica:
-        na_pratica = "Na prática: " + na_pratica
-    for _ in range(2):
-        partes = [p for p in (manchete, resumo, na_pratica) if p]
-        body = "\n\n".join(partes)
+    # Ordem de sacrificio quando falta espaco: provocacao, depois gancho.
+    # O FATO nunca e cortado.
+    for _ in range(3):
+        body = "\n\n".join(p for p in (gancho, fato, provocacao) if p)
         if tweet_length(body + tail) <= limit():
             return body + tail
-        if na_pratica:
-            na_pratica = ""
-        elif resumo:
-            resumo = ""
+        if provocacao:
+            provocacao = ""
+        elif gancho:
+            gancho = ""
         else:
             break
-    body = "\n\n".join(p for p in (manchete, resumo, na_pratica) if p)
-    text = body + tail
-    return text if tweet_length(text) <= limit() else None
+    return None
 
 
 def _peneirar_reacao(linha: str, article) -> str:

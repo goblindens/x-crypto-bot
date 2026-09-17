@@ -217,16 +217,21 @@ def checar_fontes(texto: str, config: dict, artigo=None) -> list:
             arts = conhecidas[fonte]
             if not arts:
                 problemas.append(f"'{nome}': nada publicado nas ultimas 24h pra confirmar"); continue
+            # DUAS REGRAS DIFERENTES, porque o post tem duas naturezas
+            # (formato aprovado por ele em 17/09/2026: gancho · fato · provocacao).
+            #
+            # 1. NENHUM trecho pode INVENTAR entidade -- nome, orgao, pais,
+            #    empresa ou numero que nao esta na materia. Vale pro post todo.
+            # 2. Pelo menos UM trecho tem que estar ancorado numa materia real.
+            #    Cobrar ancora de todo paragrafo cortava 6 de 6 opinioes boas:
+            #    opiniao e leitura do fato, usa outras palavras, nunca bate
+            #    ancora. Mas se NENHUM trecho bate, o post inteiro esta solto.
+            algum_ancorado = False
+            melhor_geral = 0
             for trecho in trechos:
-                # A LINHA DE OPINIAO TEM REGRA PROPRIA (17/09/2026).
-                # Ela e leitura do fato, nao repeticao dele -- entao usa outras
-                # palavras e quase nunca bate ancora. Cobrar ancora aqui cortava
-                # 6 de 6 opinioes boas. O que ela nao pode e INVENTAR: nome,
-                # orgao, pais, empresa ou numero que nao esta na materia.
-                if trecho.strip().startswith("Na prática:"):
-                    intruso = _entidade_inventada(trecho, origem, arts)
-                    if intruso:
-                        problemas.append(f"opiniao cita '{intruso}', que nao esta na materia")
+                intruso = _entidade_inventada(trecho, origem, arts)
+                if intruso:
+                    problemas.append(f"o post cita '{intruso}', que nao esta na materia")
                     continue
                 ancoras = _ancoras(trecho)
                 if not ancoras:
@@ -241,9 +246,12 @@ def checar_fontes(texto: str, config: dict, artigo=None) -> list:
                     acertos = sum(1 for anc in ancoras if anc in alvo or any(en in alvo for en in _EN.get(anc, ())))
                     if acertos > melhor:
                         melhor = acertos
-                minimo = 2 if len(ancoras) >= 4 else 1
-                if melhor < minimo:
-                    problemas.append(f"'{nome}': nada nas ultimas 24h sustenta \"{trecho[:80]}…\" (ancoras batidas: {melhor})")
+                melhor_geral = max(melhor_geral, melhor)
+                if melhor >= (2 if len(ancoras) >= 4 else 1):
+                    algum_ancorado = True
+            if trechos and not algum_ancorado:
+                problemas.append(f"'{nome}': nada nas ultimas 24h sustenta este post "
+                                 f"(melhor casamento: {melhor_geral} âncoras)")
     return problemas
 
 
@@ -269,7 +277,13 @@ _NAO_E_NOME = {"na", "o", "a", "os", "as", "um", "uma", "abre", "libera", "corre
                "com", "para", "pode", "podem", "passa", "deixa", "vira", "fica", "cria",
                "muda", "tira", "poe", "poupa", "custa", "vale", "entra", "sai", "e", "de",
                "do", "da", "no", "em", "ao", "pelo", "pela", "mercado", "bolsa", "banco",
-               "cripto", "bitcoin", "ethereum", "token", "tokenizadas", "tokenizados"}
+               "cripto", "bitcoin", "ethereum", "token", "tokenizadas", "tokenizados",
+               # lugares e instituicoes que aparecem traduzidos ou por extenso na
+               # materia e nao sao "entidade nova" -- bloquear isso derrubava 5 de
+               # 6 posts bons em 17/09/2026 ("Congresso" x "Congress", "EUA" x "US")
+               "eua", "brasil", "washington", "wall", "street", "congresso", "senado",
+               "camara", "governo", "regulador", "reguladores", "estados", "unidos",
+               "bolsas", "exchanges", "traders", "dolar", "real", "reais"}
 
 
 def _entidade_inventada(trecho: str, origem: str, arts: list) -> str:
@@ -281,16 +295,26 @@ def _entidade_inventada(trecho: str, origem: str, arts: list) -> str:
     """
     corpo = trecho.split(":", 1)[-1]
     alvo = origem + " " + " ".join(fold(a.title + " " + a.summary) for a in arts)
+
     for n in re.findall(r"\d[\d.,]*", corpo):
-        if len(n) > 1 and n not in alvo:
+        # numero conta se aparecer na materia em QUALQUER formato: "3,6" e "3.6"
+        # sao o mesmo numero em PT e EN.
+        variantes = {n, n.replace(",", "."), n.replace(".", ","), n.replace(".", "").replace(",", "")}
+        if len(n) > 1 and not any(v in alvo for v in variantes if v):
             return n
-    # nome proprio = palavra com inicial maiuscula que nao abre a frase
+
+    # nome proprio = palavra com inicial maiuscula que nao abre a frase.
+    # A comparacao usa RADICAL de 5 letras + traducao, igual as ancoras: a materia
+    # pode estar em ingles ("Congress") e o post em portugues ("Congresso").
     for m in re.finditer(r"(?<![.!?]\s)(?<!^)\b([A-ZÀ-Ý][\wÀ-ÿ]{2,})", corpo):
-        p = m.group(1)
-        if fold(p) in _NAO_E_NOME:
+        bruto = m.group(1)
+        p = fold(bruto)
+        if p in _NAO_E_NOME or len(p) < 4:
             continue
-        if fold(p)[:5] not in alvo:
-            return p
+        radical = p[:5]
+        if radical in alvo or any(en in alvo for en in _EN.get(radical, ())):
+            continue
+        return bruto
     return ""
 
 
