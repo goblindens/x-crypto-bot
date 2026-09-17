@@ -4,13 +4,13 @@ on:
   schedule:
     # ATENCAO: cron do GitHub e SEMPRE em UTC. Brasilia = UTC-3.
     # Grade de 14/09/2026 (imagem em todo post): 8 posts/dia no Threads
-    - cron: "0 10 * * *"                 # 07:00 BRT -- dado: mercado agora (card)
-    - cron: "0 12 * * *"                 # 09:00 BRT -- dado: Medo & Ganancia (grafico)
-    - cron: "5 */6 * * *"                # a cada 6 h -- TEMPO REAL: job continuo que olha os feeds a cada 90 s e publica na hora (14/09)
-    - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
-    - cron: "0 21 * * *"                 # 18:00 BRT -- dado: mais buscadas (card)
-    - cron: "0 22 * * *"                 # 19:00 BRT -- TERMOMETRO DA TROPA (melhor faixa de alcance dele)
-    - cron: "0 23 * * *"                 # 20:00 BRT -- dado: stablecoins (dia par) / hashrate (dia impar)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "0 10 * * *"                 # 07:00 BRT -- dado: mercado agora (card)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "0 12 * * *"                 # 09:00 BRT -- dado: Medo & Ganancia (grafico)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "5 */6 * * *"                # a cada 6 h -- TEMPO REAL: job continuo que olha os feeds a cada 90 s e publica na hora (14/09)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "0 21 * * *"                 # 18:00 BRT -- dado: mais buscadas (card)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "0 22 * * *"                 # 19:00 BRT -- TERMOMETRO DA TROPA (melhor faixa de alcance dele)
+    #PAUSADO 17/09 (ele: 'pause o threads, so ele') - cron: "0 23 * * *"                 # 20:00 BRT -- dado: stablecoins (dia par) / hashrate (dia impar)
     - cron: "30 6 * * 1"                 # segunda 03:30 BRT -- renova o token do Threads
   workflow_dispatch:
     inputs:
