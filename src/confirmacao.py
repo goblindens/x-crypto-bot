@@ -57,6 +57,23 @@ def _numeros(titulo: str) -> set:
 # Radical -> conceito. Duas manchetes que falam do mesmo fato tendem a repetir
 # os mesmos conceitos, mesmo em linguas diferentes ou com sinonimos.
 CONCEITOS = {
+    # ------------------------------------------------------------------
+    # 17/09/2026: o mapa era curto demais e a trava NUNCA confirmava nada.
+    # Prova: a maior noticia do dia (SEC libera acao tokenizada) saiu em 5
+    # veiculos e os 10 pares deram 0 conceitos em comum -- semelhanca maxima
+    # 0.27 contra corte de 0.42. Resultado pratico: as fontes fora do tier 1
+    # (InfoMoney, Money Times, CriptoFacil) ficavam bloqueadas pra sempre,
+    # porque a 2a fonte que elas precisavam nunca era encontrada.
+    # Faltava o vocabulario do proprio nicho: sec, token, acoes, isencao.
+    # ------------------------------------------------------------------
+    "sec": "sec", "securities and exchange": "sec", "cvm": "cvm", "cftc": "cftc",
+    "token": "token", "tokeniz": "token", "onchain": "token", "on-chain": "token",
+    "acoes": "acoes", "acao": "acoes", "stock": "acoes", "shares": "acoes", "equit": "acoes",
+    "isenc": "isencao", "exempt": "isencao", "waiver": "isencao", "alivio": "isencao",
+    "negocia": "trading", "trading": "trading", "trade": "trading", "pregao": "trading",
+    "sanc": "sancao", "sanction": "sancao", "embargo": "sancao",
+    "exchange": "exchange", "corretora": "exchange", "plataforma": "exchange",
+    "temporari": "temporario", "temporar": "temporario", "piloto": "temporario",
     "senado": "senado", "senate": "senado", "congress": "senado", "camara": "senado",
     "regula": "regulacao", "regulat": "regulacao", "lei ": "regulacao", "bill": "regulacao",
     "projeto": "regulacao", "clarity": "regulacao", "norma": "regulacao",

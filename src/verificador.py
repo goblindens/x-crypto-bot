@@ -192,7 +192,25 @@ def checar_fontes(texto: str, config: dict, artigo=None) -> list:
             cit.append(m)
     cit.sort(key=lambda c: c.start())
     if not cit:
-        return problemas
+        # POST SEM FONTE NO TEXTO (buraco achado em 17/09/2026). Ate aqui esta
+        # funcao devolvia "sem problemas" na PRIMEIRA linha quando o post nao
+        # tinha "(Fonte)" nem "via Fonte" -- ou seja, a conferencia inteira
+        # estava pendurada na citacao. Dois fatos 100% inventados passaram no
+        # teste: "congelou US$ 4,7 bilhoes da Coreia do Norte" e "O Banco
+        # Central do Japao proibiu todas as stablecoins hoje".
+        #
+        # Isso importa porque o formato novo (AshCrypto, 17/09) tira o veiculo
+        # do texto: sem este caminho, tirar o parenteses desligaria a trava.
+        #
+        # Sem citacao o universo de comparacao e a materia de ORIGEM mais tudo
+        # que saiu nas ultimas 24h. Como o universo e grande, a ancora e mais
+        # exigente aqui (ver `minimo` em _conferir): 1 acerto solto acontece por
+        # acaso quando se compara com 120 materias.
+        todos = [a for arts in conhecidas.values() for a in arts]
+        if not todos and not origem:
+            return ["sem fonte citada e nenhuma materia das ultimas 24h pra conferir"]
+        trechos = [p.strip() for p in re.split(r"\n\s*\n", texto.strip()) if len(p.strip()) >= 15]
+        return _conferir(trechos, todos, origem, "sem fonte citada", minimo=2)
     for m in cit:
         nomes = [n.strip() for n in re.split(r",| e ", m.group(1)) if n.strip()]
         antes = texto[:m.start()]
@@ -217,41 +235,52 @@ def checar_fontes(texto: str, config: dict, artigo=None) -> list:
             arts = conhecidas[fonte]
             if not arts:
                 problemas.append(f"'{nome}': nada publicado nas ultimas 24h pra confirmar"); continue
-            # DUAS REGRAS DIFERENTES, porque o post tem duas naturezas
-            # (formato aprovado por ele em 17/09/2026: gancho · fato · provocacao).
-            #
-            # 1. NENHUM trecho pode INVENTAR entidade -- nome, orgao, pais,
-            #    empresa ou numero que nao esta na materia. Vale pro post todo.
-            # 2. Pelo menos UM trecho tem que estar ancorado numa materia real.
-            #    Cobrar ancora de todo paragrafo cortava 6 de 6 opinioes boas:
-            #    opiniao e leitura do fato, usa outras palavras, nunca bate
-            #    ancora. Mas se NENHUM trecho bate, o post inteiro esta solto.
-            algum_ancorado = False
-            melhor_geral = 0
-            for trecho in trechos:
-                intruso = _entidade_inventada(trecho, origem, arts)
-                if intruso:
-                    problemas.append(f"o post cita '{intruso}', que nao esta na materia")
-                    continue
-                ancoras = _ancoras(trecho)
-                if not ancoras:
-                    continue
-                melhor = 0
-                if origem:
-                    melhor = sum(1 for anc in ancoras
-                                 if anc in origem or any(en in origem for en in _EN.get(anc, ())))
-                for a in arts:
-                    alvo = fold(a.title + " " + a.summary)
-                    # fonte em ingles: cada ancora vale tambem pela traducao (radical PT -> termos EN)
-                    acertos = sum(1 for anc in ancoras if anc in alvo or any(en in alvo for en in _EN.get(anc, ())))
-                    if acertos > melhor:
-                        melhor = acertos
-                melhor_geral = max(melhor_geral, melhor)
-                if melhor >= (2 if len(ancoras) >= 4 else 1):
-                    algum_ancorado = True
-            if trechos and not algum_ancorado:
-                problemas.append(f"'{nome}': nada nas ultimas 24h sustenta este post "
-                                 f"(melhor casamento: {melhor_geral} âncoras)")
+            problemas += _conferir(trechos, arts, origem, nome)
+    return problemas
+
+
+def _conferir(trechos: list, arts: list, origem: str, rotulo: str, minimo: int | None = None) -> list:
+    """As duas regras que sustentam o post, aplicadas trecho a trecho.
+
+    1. NENHUM trecho pode INVENTAR entidade -- nome, orgao, pais, empresa ou
+       numero que nao esta na materia. Vale pro post todo.
+    2. Pelo menos UM trecho tem que estar ancorado numa materia real. Cobrar
+       ancora de todo paragrafo cortava 6 de 6 opinioes boas: opiniao e leitura
+       do fato, usa outras palavras, nunca bate ancora. Mas se NENHUM trecho
+       bate, o post inteiro esta solto.
+
+    `minimo` forca quantas ancoras um trecho precisa casar numa MESMA materia.
+    Com fonte citada o universo e pequeno (so aquele veiculo) e o padrao basta.
+    Sem fonte citada sao ~120 materias de 10 veiculos, onde 1 acerto solto sai
+    por acaso -- por isso o chamador passa minimo=2.
+    """
+    problemas = []
+    algum_ancorado = False
+    melhor_geral = 0
+    for trecho in trechos:
+        intruso = _entidade_inventada(trecho, origem, arts)
+        if intruso:
+            problemas.append(f"o post cita '{intruso}', que nao esta na materia")
+            continue
+        ancoras = _ancoras(trecho)
+        if not ancoras:
+            continue
+        melhor = 0
+        if origem:
+            melhor = sum(1 for anc in ancoras
+                         if anc in origem or any(en in origem for en in _EN.get(anc, ())))
+        for a in arts:
+            alvo = fold(a.title + " " + a.summary)
+            # fonte em ingles: cada ancora vale tambem pela traducao (radical PT -> termos EN)
+            acertos = sum(1 for anc in ancoras if anc in alvo or any(en in alvo for en in _EN.get(anc, ())))
+            if acertos > melhor:
+                melhor = acertos
+        melhor_geral = max(melhor_geral, melhor)
+        if melhor >= (minimo if minimo is not None else (2 if len(ancoras) >= 4 else 1)):
+            algum_ancorado = True
+    if trechos and not algum_ancorado:
+        problemas.append(f"'{rotulo}': nada nas ultimas 24h sustenta este post "
+                         f"(melhor casamento: {melhor_geral} âncoras)")
     return problemas
 
 
@@ -263,7 +292,13 @@ _EN = {"acoes": ("stock",), "tecno": ("tech",), "corri": ("race",), "desac": ("s
        "queda": ("drop", "fall", "selloff", "decline"), "subiu": ("climb", "rise", "gain", "up"), "sobe": ("climb", "rise"),
        "ganha": ("gain",), "perde": ("shed", "lose", "outflow"), "sangr": ("shed", "outflow"), "votac": ("vote",), "votam": ("vote",),
        "decid": ("decision", "decide"), "seman": ("week",), "pedir": ("call",), "pedid": ("call",), "pedir": ("call",), "peder": ("call",),
-       "pediu": ("call",), "pediram": ("call",), "segur": ("safety",), "intel": ("ai", "intelligence"), "ether": ("ether",)}
+       "pediu": ("call",), "pediram": ("call",), "segur": ("safety",), "intel": ("ai", "intelligence"), "ether": ("ether",),
+       # 17/09/2026: achados com o caminho "sem fonte citada" ligado. O radical de
+       # 5 letras nao atravessa quando a grafia muda ("inovacao" x "innovation",
+       # "tesouro" x "treasury") -- sem estes, post verdadeiro era barrado.
+       "inova": ("innov",), "tesou": ("treasury",), "isenc": ("exempt",),
+       "sanca": ("sanction",), "sanci": ("sanction",), "sanco": ("sanction",),
+       "tokeni": ("token",), "negoc": ("trading", "trade"), "libera": ("allow", "permit", "open")}
 
 _PARADAS = {"enquanto", "porque", "quando", "sobre", "entre", "depois", "antes", "ainda", "hoje", "ontem", "semana",
             "muito", "pouco", "outro", "outra", "mesmo", "mesma", "nesta", "neste", "ganhou", "ganhar", "chora", "bolha",
