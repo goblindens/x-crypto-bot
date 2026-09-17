@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 40
+    "2026-09": 41
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -341,6 +341,14 @@
       "ts": "2026-09-17T17:30:47.825994+00:00",
       "tweet_id": "18124191304895358",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-143032.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: WisdomTree e MoonPay se unem para ampliar acesso a fundo tokenizado\n\nMoonPay vai usar o fundo WTGXX, de US$ 1,2 bi, da WisdomTree como parte de reservas de stablecoin.\n\nNa prática: MoonPay passa a lastrear reservas com fundo tokenizado, ampliando acesso de investidores dos EUA.\n\n(Cointelegraph)",
+      "title": "WisdomTree, MoonPay team up to expand US access to tokenized money market fund",
+      "ts": "2026-09-17T17:41:50.274547+00:00",
+      "tweet_id": "18021708002871105",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-144136.png"
     }
   ],
   "seen": {
@@ -475,6 +483,7 @@
     "a13170125de42eab": "2026-09-14T21:52:22.817111+00:00",
     "a1947ab9f7868543": "2026-09-15T08:28:26.179880+00:00",
     "a27767139e67978a": "2026-09-14T21:57:46.113263+00:00",
+    "a482459de9870136": "2026-09-17T17:40:57.978625+00:00",
     "a7b20795bca09486": "2026-09-15T08:14:59.109237+00:00",
     "a8226ca2987627ea": "2026-09-14T22:10:15.744414+00:00",
     "a8481f555cff16af": "2026-09-14T22:08:54.052446+00:00",
@@ -506,6 +515,7 @@
     "bd6e7cabb8a7417d": "2026-09-14T22:06:16.245252+00:00",
     "bed8bb6776b921b2": "2026-09-14T22:05:37.578452+00:00",
     "c1340ea397f95be2": "2026-09-14T21:51:41.606609+00:00",
+    "c167c35b9aeee29e": "2026-09-17T17:41:50.274588+00:00",
     "c2d66696c48e9722": "2026-09-16T05:29:24.079490+00:00",
     "c2f20406c1a2a312": "2026-09-15T01:12:05.271460+00:00",
     "c2fb7112adfc9857": "2026-09-14T22:30:15.422432+00:00",
