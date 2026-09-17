@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 32
+    "2026-09": 33
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -269,6 +269,14 @@
       "ts": "2026-09-17T03:59:19.003480+00:00",
       "tweet_id": "18109546100463695",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-005905.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇺🇸 Fed volta a sinalizar possibilidade de novas altas nos juros americanos\n\n(Financial Times)",
+      "title": "Fed interest rate rises are back",
+      "ts": "2026-09-17T04:29:51.429740+00:00",
+      "tweet_id": "18099000845161456",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-012938.png"
     }
   ],
   "seen": {
@@ -366,6 +374,7 @@
     "80303e515feaf5da": "2026-09-14T22:26:14.103103+00:00",
     "806d97bc6919d2d2": "2026-09-14T22:14:59.744999+00:00",
     "80fe2201e269af26": "2026-09-16T12:08:28.821058+00:00",
+    "82106781650234db": "2026-09-17T04:29:51.429782+00:00",
     "8221adbb96aaaaa5": "2026-09-15T01:40:38.123839+00:00",
     "82b1af0203650421": "2026-09-15T08:27:42.524584+00:00",
     "858286a35aab5c95": "2026-09-14T21:45:53.123675+00:00",
