@@ -9,6 +9,7 @@ Dois caminhos:
 from __future__ import annotations
 
 import os
+import re
 from datetime import timezone, timedelta
 
 from .util import (fits, fold, fmt_pct, fmt_price, has_term, limit, now_utc,
@@ -157,26 +158,56 @@ def _claude_enabled(config: dict) -> bool:
 
 
 # FORMATO ESCOLHIDO POR ELE EM 16/09/2026 (modelo Cointelegraph):
-# manchete em cima, resumo curto embaixo, fonte no fim.
+# manchete em cima, resumo curto embaixo, "Na pratica" e fonte no fim.
+#
+# A linha "na_pratica" e a REACAO que ele pediu em 17/09 ("uma reacao tem que
+# ser validada, com noticia real, contexto e informacoes reais -- nao podemos
+# correr risco de falar merda"). As travas dela estao em `_PROIBIDO_NA_PRATICA`
+# e no system prompt: fala do que MUDA para quem opera, nunca de preco futuro,
+# nunca acusa ninguem. Quando a linha nao passa nas travas, o post sai sem ela.
 _SCHEMA = {
     "type": "object",
     "properties": {
         "manchete": {
             "type": "string",
-            "description": "A manchete, uma linha, ate 110 caracteres. Fato direto, sem adjetivo, sem opiniao.",
+            "description": "A manchete, uma linha, ate 100 caracteres. Fato direto, sem adjetivo, sem opiniao.",
         },
         "resumo": {
             "type": "string",
-            "description": "1 ou 2 frases curtas (ATE 130 caracteres no total) explicando o fato: quem, quanto, quando, o que mudou. Sem repetir a manchete palavra por palavra.",
+            "description": "1 frase curta (ATE 90 caracteres) com o que a manchete nao coube: quem, quanto, quando.",
+        },
+        "na_pratica": {
+            "type": "string",
+            "description": (
+                "ATE 80 caracteres. O que esse fato MUDA para quem opera ou para o mercado. "
+                "Consequencia concreta, nao palpite de preco. Deixe VAZIO se o fato nao mudar "
+                "nada de concreto -- linha generica nao serve."
+            ),
         },
         "publicar": {
             "type": "boolean",
             "description": "false se a materia for irrelevante, publicidade ou nao verificavel.",
         },
     },
-    "required": ["manchete", "resumo", "publicar"],
+    "required": ["manchete", "resumo", "na_pratica", "publicar"],
     "additionalProperties": False,
 }
+
+# Travas da linha de reacao. Se qualquer uma casar, a linha cai e o post sai
+# so com manchete + resumo -- o fato nunca e perdido por causa da opiniao.
+_PROIBIDO_NA_PRATICA = (
+    # previsao de preco, em qualquer forma
+    "vai subir", "vai cair", "vai bater", "vai chegar", "deve subir", "deve cair",
+    "tende a subir", "tende a cair", "pode chegar a", "projeta", "preve", "previsao",
+    "alvo de", "rumo aos", "rumo a us", "ate o fim do ano", "proximo alvo",
+    # recomendacao
+    "compre", "venda", "comprar agora", "vender agora", "aproveite", "nao perca",
+    "oportunidade de compra", "hora de comprar", "hora de vender", "recomend",
+    # acusacao sem decisao judicial
+    "golpista", "e um golpe", "fraudador", "esta roubando", "criminoso", "picareta",
+    # promessa
+    "garantido", "lucro certo", "sem risco", "dinheiro facil",
+)
 
 
 def _compose_news_with_claude(article, config: dict):
@@ -196,11 +227,23 @@ def _compose_news_with_claude(article, config: dict):
         "em portugues do Brasil.\n"
         f"Tom: {style.get('voice', 'direto e informativo')}\n"
         "Regras rigidas:\n"
-        "- Devolva DOIS campos: 'manchete' (1 linha, ate 110 caracteres, fato direto) e "
-        "'resumo' (1 ou 2 frases, ATE 130 CARACTERES, explicando quem/quanto/quando/o que mudou).\n"
-        "- Os dois somados nao podem passar de 240 caracteres. Se nao couber, encurte o resumo.\n"
+        "- Devolva TRES campos: 'manchete' (1 linha, ate 100 caracteres, fato direto), "
+        "'resumo' (1 frase, ate 90 caracteres) e 'na_pratica' (ate 80 caracteres).\n"
+        "- Os tres somados nao podem passar de 250 caracteres.\n"
         "- O resumo NAO repete a manchete palavra por palavra: ele acrescenta o que a "
         "manchete nao coube -- numeros, contexto, quem esta envolvido.\n"
+        "\n"
+        "SOBRE 'na_pratica' -- e a unica linha de leitura propria do post:\n"
+        "- Diga o que esse fato MUDA, de concreto: o que passa a ser permitido ou proibido, "
+        "quem ganha ou perde acesso, que custo ou prazo muda, que porta abre ou fecha.\n"
+        "- Pode julgar CONDUTA de empresa, projeto, banco, corretora ou governo. "
+        "Exemplo bom: 'Banco grande dizendo que uma moeda sobe 70x nao e analise, e folheto.'\n"
+        "- PROIBIDO dizer para onde o preco vai, em qualquer forma ('vai subir', 'deve cair', "
+        "'projeta', 'alvo de'). PROIBIDO recomendar compra ou venda. PROIBIDO chamar alguem de "
+        "golpista ou criminoso sem decisao judicial. PROIBIDO prometer resultado.\n"
+        "- PROIBIDO frase generica de encher linguica ('vale acompanhar', 'fique de olho', "
+        "'o mercado reage', 'momento importante'). Se voce nao tem uma consequencia concreta "
+        "para dizer, devolva na_pratica VAZIO. Linha vazia e melhor que linha vazia de sentido.\n"
         "- Se um pais for central, comece com a bandeira dele (emoji), ex.: '🇺🇸 Senado vota...'.\n"
         "- Nao traduza nomes proprios; converta valores em ingles pra formato BR (US$ 463 mi, 85%).\n"
         "- NUNCA repita o preco atual de BTC/ETH/SOL que estiver na manchete (ele muda a cada minuto e "
@@ -249,20 +292,63 @@ def _compose_news_with_claude(article, config: dict):
 
     manchete = (data.get("manchete") or "").strip()
     resumo = (data.get("resumo") or "").strip()
+    na_pratica = (data.get("na_pratica") or "").strip()
     if not manchete:
         return None
 
-    hashtags = pick_hashtags(manchete + " " + resumo or article.title, config)
+    na_pratica = _peneirar_reacao(na_pratica, article)
+
+    hashtags = pick_hashtags(" ".join([manchete, resumo]) or article.title, config)
     tail = f"\n\n({article.source})"      # so o nome da fonte, entre parenteses, sem link (regra dele)
     if hashtags:
         tail += f"\n\n{hashtags}"
 
-    # A MANCHETE NUNCA E CORTADA. Se faltar espaco, encolhe o resumo; se nem
-    # assim couber, o post sai so com a manchete (melhor que resumo pela metade).
-    sobra = limit() - tweet_length(manchete) - tweet_length(tail) - 2   # 2 = "\n\n"
-    if resumo and tweet_length(resumo) > sobra:
-        resumo = truncate_to_fit(resumo, reserved=limit() - sobra) if sobra > 40 else ""
-    body = manchete + ("\n\n" + resumo if resumo else "")
-
+    # Ordem de sacrificio quando falta espaco: primeiro a reacao, depois o
+    # resumo. A MANCHETE NUNCA E CORTADA -- o fato nunca sai pela metade.
+    if na_pratica:
+        na_pratica = "Na prática: " + na_pratica
+    for _ in range(2):
+        partes = [p for p in (manchete, resumo, na_pratica) if p]
+        body = "\n\n".join(partes)
+        if tweet_length(body + tail) <= limit():
+            return body + tail
+        if na_pratica:
+            na_pratica = ""
+        elif resumo:
+            resumo = ""
+        else:
+            break
+    body = "\n\n".join(p for p in (manchete, resumo, na_pratica) if p)
     text = body + tail
     return text if tweet_length(text) <= limit() else None
+
+
+def _peneirar_reacao(linha: str, article) -> str:
+    """Devolve a linha de reacao, ou '' se ela nao passar nas travas dele.
+
+    Duas peneiras locais, de graca:
+      1. palavra proibida  -> previsao de preco, recomendacao, acusacao, promessa
+      2. numero que nao esta na materia
+    Depois disso o post inteiro ainda passa pelo `verificador.py` (que ja existia
+    desde 14/09): cada paragrafo tem que se sustentar numa materia real das
+    ultimas 24h. A reacao nao tem passe livre -- ela e conferida como o resto.
+
+    Regra de 17/09/2026: "nao podemos correr risco de falar merda". Opiniao
+    errada no ar vira print -- entao na duvida a linha cai e o post sai so com
+    o fato, que e sempre defensavel.
+    """
+    if not linha:
+        return ""
+    plano = fold(linha)
+    proibido = next((p for p in _PROIBIDO_NA_PRATICA if p in plano), None)
+    if proibido:
+        print(f"[composer] reacao barrada ('{proibido}'): {article.title[:50]}")
+        return ""
+    # numero que nao veio da materia nao entra na opiniao: o verificador so
+    # confere o corpo do fato, e um numero inventado aqui passaria batido.
+    numeros_fonte = set(re.findall(r"\d[\d.,]*", f"{article.title} {article.summary}"))
+    for n in re.findall(r"\d[\d.,]*", linha):
+        if n not in numeros_fonte and len(n) > 1:
+            print(f"[composer] reacao barrada (numero {n} fora da materia): {article.title[:50]}")
+            return ""
+    return linha

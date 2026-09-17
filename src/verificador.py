@@ -186,8 +186,16 @@ def checar_fontes(texto: str, config: dict) -> list:
         paragrafo = re.split(r"\n\s*\n", antes.strip())[-1] if antes.strip() else ""
         # "(via A e B)" no comeco de uma linha (sozinho) = fonte do post inteiro
         sozinho = antes.endswith("\n") or antes.endswith("\n(") or not paragrafo.strip() or len(paragrafo.strip()) < 15
-        trecho = texto if sozinho else paragrafo
-        ancoras = _ancoras(trecho)
+
+        # PARAGRAFO POR PARAGRAFO, nunca o post em bloco (buraco achado em
+        # 17/09/2026): conferindo tudo junto, uma frase inventada colada numa
+        # manchete verdadeira PASSAVA, porque as ancoras da parte verdadeira
+        # bastavam pro post inteiro. Sozinha, a mesma frase era bloqueada.
+        if sozinho:
+            trechos = [p.strip() for p in re.split(r"\n\s*\n", antes.strip()) if len(p.strip()) >= 15]
+        else:
+            trechos = [paragrafo]
+
         for nome in nomes:
             chave = fold(nome)
             fonte = next((k for k in conhecidas if k in chave or chave in k), None)
@@ -196,16 +204,20 @@ def checar_fontes(texto: str, config: dict) -> list:
             arts = conhecidas[fonte]
             if not arts:
                 problemas.append(f"'{nome}': nada publicado nas ultimas 24h pra confirmar"); continue
-            melhor, melhor_titulo = 0, ""
-            for a in arts:
-                alvo = fold(a.title + " " + a.summary)
-                # fonte em ingles: cada ancora vale tambem pela traducao (radical PT -> termos EN)
-                acertos = sum(1 for anc in ancoras if anc in alvo or any(en in alvo for en in _EN.get(anc, ())))
-                if acertos > melhor:
-                    melhor, melhor_titulo = acertos, a.title
-            minimo = 2 if len(ancoras) >= 4 else 1
-            if melhor < minimo:
-                problemas.append(f"'{nome}': nada nas ultimas 24h sustenta \"{trecho.strip()[:80]}…\" (ancoras batidas: {melhor})")
+            for trecho in trechos:
+                ancoras = _ancoras(trecho)
+                if not ancoras:
+                    continue
+                melhor = 0
+                for a in arts:
+                    alvo = fold(a.title + " " + a.summary)
+                    # fonte em ingles: cada ancora vale tambem pela traducao (radical PT -> termos EN)
+                    acertos = sum(1 for anc in ancoras if anc in alvo or any(en in alvo for en in _EN.get(anc, ())))
+                    if acertos > melhor:
+                        melhor = acertos
+                minimo = 2 if len(ancoras) >= 4 else 1
+                if melhor < minimo:
+                    problemas.append(f"'{nome}': nada nas ultimas 24h sustenta \"{trecho[:80]}…\" (ancoras batidas: {melhor})")
     return problemas
 
 
@@ -234,9 +246,21 @@ def _ancoras(trecho: str) -> set:
     return nums | rad
 
 
+# Previsao de preco montada com palavras separadas: "deve FAZER O BITCOIN subir"
+# passava, porque PROIBIDAS so pega frase colada ("deve subir"). Aqui o verbo e o
+# movimento podem estar a ate 5 palavras de distancia. (buraco achado em 17/09/2026)
+_VERBO_PREVISAO = r"(?:deve|devem|pode|podem|vai|vao|tende a|tendem a|espera-se|projeta|preve)"
+_MOVIMENTO = r"(?:subir|cair|disparar|despencar|desabar|decolar|explodir|derreter|valorizar|desvalorizar|bater|chegar|atingir|alcancar)"
+_PREVISAO_RE = re.compile(rf"\b{_VERBO_PREVISAO}\b(?:\W+\w+){{0,5}}\W+\b{_MOVIMENTO}\b")
+
+
 def checar_proibidas(texto: str) -> list:
     t = fold(texto)
-    return [f"palavra proibida: '{p}'" for p in PROIBIDAS if fold(p) in t]
+    problemas = [f"palavra proibida: '{p}'" for p in PROIBIDAS if fold(p) in t]
+    m = _PREVISAO_RE.search(t)
+    if m and not problemas:
+        problemas.append(f"previsao de preco: '{m.group(0)}'")
+    return problemas
 
 
 # -------------------------------------------------------------------- tudo

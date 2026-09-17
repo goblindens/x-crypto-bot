@@ -213,6 +213,18 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
         from .verificador import verificar
         ver = verificar(text, config)
         if not ver["ok"]:
+            # A REACAO CAI SOZINHA, o fato nao (17/09/2026). Se o unico problema
+            # esta na linha "Na pratica", tira a linha e confere o fato de novo:
+            # opiniao que nao se sustenta nao pode levar junto uma noticia boa.
+            sem_reacao = "\n\n".join(p for p in text.split("\n\n")
+                                     if not p.strip().startswith("Na prática:"))
+            if sem_reacao != text:
+                ver2 = verificar(sem_reacao, config)
+                if ver2["ok"]:
+                    print("[verificacao] reacao reprovada, publicando so o fato: "
+                          + " | ".join(ver["problemas"])[:120])
+                    text, ver = sem_reacao, ver2
+        if not ver["ok"]:
             print("[verificacao] BLOQUEADO: " + " | ".join(ver["problemas"]))
             state.mark_seen(article.url)
             continue
