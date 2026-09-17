@@ -156,19 +156,25 @@ def _claude_enabled(config: dict) -> bool:
     return True
 
 
+# FORMATO ESCOLHIDO POR ELE EM 16/09/2026 (modelo Cointelegraph):
+# manchete em cima, resumo curto embaixo, fonte no fim.
 _SCHEMA = {
     "type": "object",
     "properties": {
-        "tweet": {
+        "manchete": {
             "type": "string",
-            "description": "Texto do post em portugues do Brasil, sem link e sem hashtags, ate 200 caracteres.",
+            "description": "A manchete, uma linha, ate 110 caracteres. Fato direto, sem adjetivo, sem opiniao.",
+        },
+        "resumo": {
+            "type": "string",
+            "description": "2 a 3 linhas explicando o fato: quem, quanto, quando, o que mudou. Sem repetir a manchete palavra por palavra.",
         },
         "publicar": {
             "type": "boolean",
             "description": "false se a materia for irrelevante, publicidade ou nao verificavel.",
         },
     },
-    "required": ["tweet", "publicar"],
+    "required": ["manchete", "resumo", "publicar"],
     "additionalProperties": False,
 }
 
@@ -190,8 +196,10 @@ def _compose_news_with_claude(article, config: dict):
         "em portugues do Brasil.\n"
         f"Tom: {style.get('voice', 'direto e informativo')}\n"
         "Regras rigidas:\n"
-        "- UMA linha so, no maximo 170 caracteres, estilo manchete de canal de noticias: "
-        "fato direto, numero na frente quando houver, sem adjetivo seu, sem opiniao.\n"
+        "- Devolva DOIS campos: 'manchete' (1 linha, ate 110 caracteres, fato direto) e "
+        "'resumo' (2 a 3 linhas explicando o fato: quem, quanto, quando, o que mudou).\n"
+        "- O resumo NAO repete a manchete palavra por palavra: ele acrescenta o que a "
+        "manchete nao coube -- numeros, contexto, quem esta envolvido.\n"
         "- Se um pais for central, comece com a bandeira dele (emoji), ex.: '🇺🇸 Senado vota...'.\n"
         "- Nao traduza nomes proprios; converta valores em ingles pra formato BR (US$ 463 mi, 85%).\n"
         "- NUNCA repita o preco atual de BTC/ETH/SOL que estiver na manchete (ele muda a cada minuto e "
@@ -238,9 +246,11 @@ def _compose_news_with_claude(article, config: dict):
         print(f"[composer] Claude marcou como nao publicavel: {article.title[:60]}")
         return "SKIP"
 
-    body = (data.get("tweet") or "").strip()
-    if not body:
+    manchete = (data.get("manchete") or "").strip()
+    resumo = (data.get("resumo") or "").strip()
+    if not manchete:
         return None
+    body = manchete + ("\n\n" + resumo if resumo else "")
 
     hashtags = pick_hashtags(body or article.title, config)
     tail = f"\n\n({article.source})"      # so o nome da fonte, entre parenteses, sem link (regra dele)
