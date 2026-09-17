@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 52
+    "2026-09": 53
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -445,6 +445,14 @@
       "ts": "2026-09-17T21:37:23.554497+00:00",
       "tweet_id": "18091070264182351",
       "url": "https://raw.githubusercontent.com/goblindens/x-crypto-bot/main/artes/ranking.png"
+    },
+    {
+      "kind": "dado/termometro",
+      "text": "Dia de lado. O tédio também é posição.\n\nMedo & Ganancia em 50 (neutro) caiu de 51 ontem.\n\nVocê opera de lado ou fica de fora?\n\n(alternative.me)",
+      "title": "termometro da tropa",
+      "ts": "2026-09-17T21:41:00.365937+00:00",
+      "tweet_id": "17909668662541798",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/termometro-20260917-184039.png"
     }
   ],
   "seen": {
@@ -580,6 +588,7 @@
     "89f694ada6530e7b": "2026-09-16T23:43:02.627056+00:00",
     "8a6203a34d8cd8f5": "2026-09-15T07:36:53.786871+00:00",
     "8a74a77eed8fd51e": "2026-09-14T22:18:28.095879+00:00",
+    "8c0d80c56760ef14": "2026-09-17T21:41:00.365983+00:00",
     "8c348bad28a5b51c": "2026-09-14T22:11:37.941985+00:00",
     "8f8ed95de0cf9569": "2026-09-15T06:30:38.551760+00:00",
     "90a21ac289cd6518": "2026-09-14T21:44:38.612105+00:00",
