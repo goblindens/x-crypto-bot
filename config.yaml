@@ -354,7 +354,7 @@ parceiros:
 # ---------------------------------------------------------------------------
 imagens:
   ligado: true
-  ligar_em: "2026-09-17"   # religado 17/09 com formato manchete+resumo+reacao e verificador por paragrafo
+  ligar_em: "2026-09-30"   # PAUSADO 17/09: "traga aqui pra mim antes de postar". Gera e so MOSTRA no log.
   pasta: artes/auto
 
 composer:
