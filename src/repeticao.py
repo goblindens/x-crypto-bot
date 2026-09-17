@@ -21,10 +21,17 @@ def _quando(ts: str):
     return _parse(ts)
 
 
-def repetido(artigo, state, horas: int = 6) -> tuple[bool, str]:
-    """True se ja falamos do mesmo assunto nas ultimas `horas`."""
+def repetido(artigo, state, horas: int = 2) -> tuple[bool, str]:
+    """True so se for o MESMO FATO ja publicado -- nao 'assunto parecido'.
+
+    Correcao dele em 17/09/2026: "nao quero filtro por repeticao, quero por
+    qualidade. Se a noticia for boa, voce tem que postar."
+
+    A versao anterior bloqueava por 3 conceitos em comum, o que barrava
+    noticia nova sobre um tema ja tocado. Agora so barra duplicata de verdade:
+    o mesmo fato contado outra vez. Tema repetido com fato novo passa.
+    """
     corte = now_utc() - timedelta(hours=horas)
-    conceitos_novo = _conceitos(artigo.title)
     for post in reversed(state.data.get("posts", [])[-40:]):
         quando = _quando(post.get("ts", ""))
         if not quando or quando < corte:
@@ -33,8 +40,5 @@ def repetido(artigo, state, horas: int = 6) -> tuple[bool, str]:
         if not titulo_antigo:
             continue
         if _mesmo_assunto(artigo.title, titulo_antigo):
-            return True, f"mesmo assunto de {quando:%H:%M}: {titulo_antigo[:60]}"
-        # 3 conceitos iguais ja bastam pra ser "mais do mesmo"
-        if len(conceitos_novo & _conceitos(titulo_antigo)) >= 3:
-            return True, f"assunto parecido com o de {quando:%H:%M}: {titulo_antigo[:60]}"
+            return True, f"ja publicado às {quando:%H:%M}: {titulo_antigo[:60]}"
     return False, ""

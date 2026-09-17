@@ -44,7 +44,7 @@ news:
   min_score: 8                  # nota minima de relevancia para publicar (era 4; "apenas relevantes", 13/09/2026)
   # TEMPO REAL (17/09): fonte tier 1 publica na hora. Acusacao, fraude,
   # investigacao e rumor sempre esperam 2 fontes -- e onde errar vira processo.
-  horas_sem_repetir: 6          # nao falar do mesmo assunto 2x no mesmo dia
+  horas_sem_repetir: 2          # so bloqueia DUPLICATA (mesmo fato). Tema repetido com fato novo passa (17/09)
   tier1: [coindesk, the block, reuters, bloomberg, cointelegraph, portal do bitcoin, livecoins]
   exigir_assunto: true          # sem palavra de parceiro/alta/media, nao publica
   # ------------------------------------------------------------------
