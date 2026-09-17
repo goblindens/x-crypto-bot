@@ -354,7 +354,7 @@ parceiros:
 # ---------------------------------------------------------------------------
 imagens:
   ligado: true
-  ligar_em: "2026-09-19"   # PAUSADO em 17/09 a pedido dele: "e um teste, antes de postar traga aqui". O bot gera e so MOSTRA no log.
+  ligar_em: "2026-09-17"   # religado 17/09 com formato manchete+resumo+reacao e verificador por paragrafo
   pasta: artes/auto
 
 composer:
