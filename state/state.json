@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 41
+    "2026-09": 42
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -349,6 +349,14 @@
       "ts": "2026-09-17T17:41:50.274547+00:00",
       "tweet_id": "18021708002871105",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-144136.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: CVM finaliza proposta de piloto para testar tokenização no mercado\n\nRegulador quer testar em ambiente controlado ativos tokenizados antes de regra definitiva\n\n(Portal do Bitcoin)",
+      "title": "CVM finaliza proposta de piloto para testar tokenização no mercado de capitais",
+      "ts": "2026-09-17T17:52:44.041942+00:00",
+      "tweet_id": "18058246763544989",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-145230.png"
     }
   ],
   "seen": {
@@ -459,6 +467,7 @@
     "858286a35aab5c95": "2026-09-14T21:45:53.123675+00:00",
     "8710be088f162830": "2026-09-17T12:09:53.217247+00:00",
     "881de6b8e74aa21f": "2026-09-14T23:46:20.596520+00:00",
+    "88cf2c53dfb0a132": "2026-09-17T17:52:44.041984+00:00",
     "88dfbf0dc7574d00": "2026-09-16T06:33:59.945369+00:00",
     "894750de51d3cd68": "2026-09-16T08:30:19.751195+00:00",
     "89f694ada6530e7b": "2026-09-16T23:43:02.627056+00:00",
