@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 36
+    "2026-09": 37
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -309,6 +309,14 @@
       "ts": "2026-09-17T12:09:53.217208+00:00",
       "tweet_id": "18110300021137102",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-090936.png"
+    },
+    {
+      "kind": "dado/mercado",
+      "text": "📊 Mercado agora, 17/09 11:35\n\nBTC US$ 76,8 mil (+1,5%) · ETH US$ 2.475 (+3,4%) · SOL US$ 101,62 (+4,8%)\n\ncap. total US$ 2,65 tri · domínio BTC 58,2% · Medo & Ganância 50 (neutro)\n\n(OKX, Binance, CoinGecko, alternative.me)",
+      "title": "mercado agora",
+      "ts": "2026-09-17T14:36:14.665840+00:00",
+      "tweet_id": "18133081492643367",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/mercado-20260917-113555.png"
     }
   ],
   "seen": {
@@ -490,6 +498,7 @@
     "db23cfaf9660acee": "2026-09-14T22:07:36.674607+00:00",
     "dbeca33ba16ba9a6": "2026-09-14T21:42:46.879116+00:00",
     "deb9c6d5751e2324": "2026-09-17T08:34:46.764212+00:00",
+    "df3b6c60adf42bd0": "2026-09-17T14:36:14.665883+00:00",
     "df4a07f4cb561200": "2026-09-14T21:48:34.956372+00:00",
     "e11463f9dcd0a25e": "2026-09-15T05:59:46.501815+00:00",
     "e1be54826f7d469b": "2026-09-15T07:40:20.118151+00:00",
