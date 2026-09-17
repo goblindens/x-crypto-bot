@@ -33,28 +33,84 @@ def score_article(article, config: dict) -> None:
                     bateu_palavra = True
                 break  # so uma palavra por faixa, senao um texto longo infla a nota
 
-    # Fonte de geopolitica/macro (14/09/2026): so passa se a manchete tiver um termo
-    # que de fato mexe com cripto (guerra, petroleo, juros, dolar, China...).
+    # -------------------------------------------------------------------------
+    # REGRA DELE, 16/09/2026: "os posts tem que ser exclusivo de cripto, e
+    # geopolitica que tenha a ver com o mercado cripto ou financeiro".
+    #
+    # O que quebrou antes: "Cobre estabiliza a espera do Fed" passava, porque
+    # tinha a palavra "Fed". Mas a materia e sobre COBRE. Idem ouro, petroleo,
+    # FTSE, bolsas da Asia. Quatro dos cinco piores posts do X eram isso.
+    #
+    # A correcao olha o SUJEITO da manchete, nao so as palavras que aparecem:
+    #   1. fala de cripto           -> passa sempre
+    #   2. e sobre outro ativo      -> descarta, mesmo citando Fed/juros
+    #   3. macro de verdade          -> passa (Fed, juros, inflacao, guerra...)
+    # -------------------------------------------------------------------------
+    cripto = [t for t in ("bitcoin", "cripto", "crypto", "stablecoin", "ethereum", "etf",
+                          "blockchain", "btc", "eth", "solana", "xrp", "altcoin", "defi",
+                          "binance", "coinbase", "okx", "kraken", "exchange", "corretora",
+                          "token", "web3", "satoshi", "halving", "mineracao", "mining")
+              if has_term(haystack, t)]
+    # Ativos e mercados que NAO sao o assunto dele. Se a manchete e sobre isto e
+    # nao cita cripto, nao entra -- por mais que mencione o Fed.
+    OUTROS_ATIVOS = ("cobre", "copper", "ouro", "gold", "petroleo", "petróleo", "oil", "brent",
+                     "minerio", "minério", "soja", "milho", "cafe", "café", "trigo", "gas natural",
+                     "ftse", "nikkei", "ibovespa", "s&p 500", "dow", "nasdaq", "cac", "dax",
+                     "bolsas", "bolsa", "stocks", "equities", "acoes", "ações", "shares",
+                     "treasury", "treasuries", "bond", "bonds", "titulo", "título", "gilt",
+                     "libra", "sterling", "iene", "yen", "euro", "rand", "peso", "rupia",
+                     "imoveis", "imóveis", "real estate", "vinho", "arte")
+    # Quem vem primeiro na manchete e o assunto de verdade. "Cobre estabiliza a
+    # espera do Fed" comeca com cobre -> corta. "Ira dispara misseis contra
+    # Israel; petroleo dispara" comeca com Ira -> passa, e geopolitica.
+    def _onde(termos):
+        pos = [title_only.find(t) for t in termos if has_term(title_only, t)]
+        return min([p for p in pos if p >= 0], default=None)
+
     feed_cfg = next((f for f in news_cfg["feeds"] if f["name"] == article.source), {})
+    if not cripto:
+        p_ativo = _onde(OUTROS_ATIVOS)
+        if p_ativo is not None:
+            p_macro = _onde(news_cfg.get("macro_fortes") or [])
+            if p_macro is None or p_ativo < p_macro:
+                alvo = next(a for a in OUTROS_ATIVOS if has_term(title_only, a) and title_only.find(a) == p_ativo)
+                score = -70
+                reasons.append(f"a manchete e sobre '{alvo}', nao sobre cripto")
+                article.score, article.reasons = score, reasons
+                return
+
     if feed_cfg.get("grupo") == "macro":
-        termos = news_cfg.get("macro_termos") or []
-        fortes = news_cfg.get("macro_fortes") or []
-        acertos = [t for t in termos if has_term(title_only, t)]
-        cripto = [t for t in ("bitcoin", "cripto", "crypto", "stablecoin", "ethereum", "etf", "blockchain", "btc", "eth") if has_term(haystack, t)]
-        forte = next((t for t in acertos if t in fortes), None)
-        # Passa se: fala de cripto; OU tem um termo forte (juros, tarifa, sancao, Ormuz...);
-        # OU junta dois termos fracos na manchete (Ira + missil). Um termo fraco
-        # sozinho ("war", "oil", "strike") nao basta -- e assim que entra "FTSE sobe
-        # com petroleo" e "drone na Russia" sem nada a ver com cripto (14/09/2026).
+        # Reuters e Bloomberg entram no feed com MUITA materia macro (68 da
+        # Bloomberg numa janela de 2h, 17/09). Macro economico puro -- "Fed
+        # eleva juros", "dolar sobe" -- vira 8 posts sobre o mesmo assunto e foi
+        # o que encheu o feed dele. Entao, nestas fontes, so passa se:
+        #   (a) a manchete fala de cripto, ou
+        #   (b) e um EVENTO geopolitico (guerra, sancao, tarifa, Ira, China...)
+        # "Fed eleva juros" sozinho nao entra: quando mexe com cripto de verdade,
+        # as fontes de cripto cobrem, e ai passa por elas.
+        # Evento por si so: guerra, missil, sancao, tarifa, Ormuz.
+        GEO = ("guerra", "war", "missil", "míssil", "missile", "ormuz", "hormuz",
+               "sancao", "sanção", "sanction", "tarifa", "tariff", "embargo",
+               "shutdown", "default soberano", "opec", "opep", "ataque militar")
+        # Pais sozinho nao e evento: "China's Gas Demand" e "Huawei vs Nvidia"
+        # passavam so por citar China. Precisa vir junto de um evento.
+        PAISES = ("ira", "irã", "iran", "israel", "russia", "rússia", "ucrania",
+                  "ucrânia", "china", "taiwan", "venezuela", "coreia do norte")
+        geo = next((t for t in GEO if has_term(title_only, t)), None)
+        if not geo:
+            pais = next((p for p in PAISES if has_term(title_only, p)), None)
+            evento = next((e for e in ("ataque", "strike", "invas", "bomb", "conflito",
+                                       "conflict", "proib", "ban ", "banir", "retalia")
+                           if has_term(title_only, e)), None)
+            if pais and evento:
+                geo = f"{pais} + {evento}"
         if cripto:
             acerto = cripto[0]
-        elif forte:
-            acerto = forte
-        elif len(acertos) >= 2:
-            acerto = " + ".join(acertos[:2])
+        elif geo:
+            acerto = f"geopolítica '{geo}'"
         else:
             score = -60
-            reasons.append("macro sem termo que mexa com cripto" + (f" (so '{acertos[0]}')" if acertos else ""))
+            reasons.append("fonte macro sem cripto nem evento geopolítico")
             article.score, article.reasons = score, reasons
             return
         score += 3

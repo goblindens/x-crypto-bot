@@ -11,7 +11,7 @@ timezone: America/Sao_Paulo
 limits:
   max_posts_per_month: 400      # trava de seguranca (o Threads permite 250/DIA)
   max_posts_per_run: 1          # 1 por execucao: o bot roda a cada 30 min (14/09), sem rajada
-  max_posts_per_day: 12         # teto diario (dele, 14/09: "vamos ate o limite" -> 12, mede 1 semana)
+  max_posts_per_day: 8          # 3 noticias + 1 termometro + espelho do Insta (17/09)
   min_minutes_between_posts: 30 # espacamento minimo entre dois posts
   max_per_source_per_run: 1     # evita 2 manchetes da mesma fonte seguidas
 
@@ -35,164 +35,68 @@ espelho:
   windows: []
 
 news:
-  max_age_hours: 2              # so noticia fresca (dele, 14/09: "coisa antiga eu nao quero")
+  max_age_hours: 6              # so noticia fresca (dele, 14/09: "coisa antiga eu nao quero")
   min_score: 8                  # nota minima de relevancia para publicar (era 4; "apenas relevantes", 13/09/2026)
+  # TEMPO REAL (17/09): fonte tier 1 publica na hora. Acusacao, fraude,
+  # investigacao e rumor sempre esperam 2 fontes -- e onde errar vira processo.
+  horas_sem_repetir: 6          # nao falar do mesmo assunto 2x no mesmo dia
+  tier1: [coindesk, the block, reuters, bloomberg, cointelegraph, portal do bitcoin, livecoins]
   exigir_assunto: true          # sem palavra de parceiro/alta/media, nao publica
+  # ------------------------------------------------------------------
+  # AS 10 FONTES (decisao dele, 17/09/2026). Eram 25 e o robo escolhia por
+  # nota, nao por importancia -- foi assim que cobre e armas orbitais entraram.
+  # Com 10 + a exigencia de 2 confirmacoes, o que passa e o que importa.
+  # ------------------------------------------------------------------
   feeds:
+    # ---- BRASIL ----
     - name: Portal do Bitcoin
-      url: https://portaldobitcoin.uol.com.br/feed/
-      weight: 4
+      url: https://news.google.com/rss/search?q=site:portaldobitcoin.uol.com.br+when:6h&hl=pt-BR&gl=BR&ceid=BR:pt-419
+      weight: 5
       lang: pt
+      googlenews: true
     - name: Livecoins
       url: https://livecoins.com.br/feed/
-      weight: 3
+      weight: 4
       lang: pt
     - name: CriptoFacil
       url: https://www.criptofacil.com/feed/
-      weight: 3
-      lang: pt
-    - name: BeInCrypto Brasil
-      url: https://br.beincrypto.com/feed/
-      weight: 3
-      lang: pt
-    - name: Money Times Cripto
-      url: https://www.moneytimes.com.br/tag/criptomoedas/feed/
-      weight: 3
+      weight: 4
       lang: pt
     - name: InfoMoney
       url: https://www.infomoney.com.br/feed/
-      weight: 2
+      weight: 3
       lang: pt
-    - name: Exame Invest
-      url: https://exame.com/invest/feed/
-      weight: 2
-      lang: pt
-    # ---------------------------------------------------------------------
-    # PARCEIROS (13/09/2026): canal oficial, vai na frente, sai com chamada
-    # pra comunidade e link na 1a resposta. Kraken tem RSS; OKX e lida da
-    # pagina de anuncios (okx_anuncios abaixo); Ledger bloqueia robo (401).
-    # ---------------------------------------------------------------------
-    - name: Kraken Blog
-      url: https://blog.kraken.com/feed
-      weight: 5
-      lang: en
-      parceiro: true
-    # Portal do Bitcoin e Money Times bloqueiam o IP de Toquio (403): caminho alternativo via Google News
-    - name: Portal do Bitcoin
-      url: https://news.google.com/rss/search?q=site:portaldobitcoin.uol.com.br+when:12h&hl=pt-BR&gl=BR&ceid=BR:pt-419
-      weight: 4
-      lang: pt
-      googlenews: true
     - name: Money Times Cripto
-      url: https://news.google.com/rss/search?q=site:moneytimes.com.br+cripto+when:12h&hl=pt-BR&gl=BR&ceid=BR:pt-419
+      url: https://news.google.com/rss/search?q=site:moneytimes.com.br+cripto+when:6h&hl=pt-BR&gl=BR&ceid=BR:pt-419
       weight: 3
       lang: pt
       googlenews: true
-    - name: Kraken                    # o blog passou a bloquear robo (403, 14/09): via Google News tambem
-      url: https://news.google.com/rss/search?q=site:blog.kraken.com+when:24h&hl=en-US&gl=US&ceid=US:en
-      weight: 5
-      lang: en
-      parceiro: true
-      googlenews: true
-    # ---------------------------------------------------------------------
-    # Fontes em ingles: DESLIGADAS por padrao. No modo template o bot nao
-    # traduz -- a manchete sairia em ingles. Ligue (enabled: true) se voce
-    # quiser postar em ingles ou se ativar o composer com a Claude.
-    # ---------------------------------------------------------------------
-    # LIGADAS em 14/09/2026 (IA traduz; sem IA a manchete em ingles nao sai)
+    # ---- MUNDO ----
     - name: CoinDesk
       url: https://www.coindesk.com/arc/outboundfeeds/rss/
-      weight: 4
+      weight: 5
       lang: en
-      enabled: true
-    - name: Cointelegraph
-      url: https://cointelegraph.com/rss
-      weight: 3
-      lang: en
-      enabled: true
-    - name: Decrypt
-      url: https://decrypt.co/feed
-      weight: 3
-      lang: en
-      enabled: true
     - name: The Block
       url: https://www.theblock.co/rss.xml
+      weight: 5
+      lang: en
+    - name: Cointelegraph
+      url: https://cointelegraph.com/rss
       weight: 4
       lang: en
-      enabled: true
-    - name: Bitcoin Magazine
-      url: https://bitcoinmagazine.com/feed
-      weight: 2
-      lang: en
-      enabled: false
-    # ---------------------------------------------------------------------
-    # GEOPOLITICA / MACRO (14/09/2026): so entra manchete que pode mexer no
-    # mercado cripto (termos em `macro_termos`); o resto e descartado. Fontes
-    # de imprensa estabelecida, nada de midia estatal (Fars, Al Mayadeen, RT).
-    # ---------------------------------------------------------------------
-    - name: WSJ World
-      url: https://feeds.content.dowjones.io/public/rss/RSSWorldNews
-      weight: 3
-      lang: en
-      grupo: macro
-    - name: NYT World
-      url: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
-      weight: 3
-      lang: en
-      grupo: macro
-    - name: BBC World
-      url: http://feeds.bbci.co.uk/news/world/rss.xml
-      weight: 3
-      lang: en
-      grupo: macro
-    - name: CNBC World
-      url: https://www.cnbc.com/id/100727362/device/rss/rss.html
-      weight: 3
-      lang: en
-      grupo: macro
-    - name: Al Jazeera
-      url: https://www.aljazeera.com/xml/rss/all.xml
-      weight: 2
-      lang: en
-      grupo: macro
-    - name: BBC Brasil
-      url: https://feeds.bbci.co.uk/portuguese/rss.xml
-      weight: 2
-      lang: pt
-      grupo: macro
-
-    # ---------------------------------------------------------------------
-    # AS PRINCIPAIS DO MUNDO (14/09/2026), via Google News RSS (elas nao abrem
-    # RSS proprio): manchete chega em minutos, fonte vem no titulo. Mesmo
-    # filtro macro: so o que mexe com cripto.
-    # ---------------------------------------------------------------------
     - name: Reuters
-      url: https://news.google.com/rss/search?q=site:reuters.com+when:12h&hl=en-US&gl=US&ceid=US:en
+      url: https://news.google.com/rss/search?q=site:reuters.com+(crypto+OR+bitcoin)+when:12h&hl=en-US&gl=US&ceid=US:en
       weight: 5
       lang: en
       grupo: macro
       googlenews: true
     - name: Bloomberg
-      url: https://news.google.com/rss/search?q=site:bloomberg.com+when:12h&hl=en-US&gl=US&ceid=US:en
+      url: https://news.google.com/rss/search?q=site:bloomberg.com+(crypto+OR+bitcoin)+when:12h&hl=en-US&gl=US&ceid=US:en
       weight: 5
       lang: en
       grupo: macro
       googlenews: true
-    - name: AP News
-      url: https://news.google.com/rss/search?q=site:apnews.com+when:12h&hl=en-US&gl=US&ceid=US:en
-      weight: 4
-      lang: en
-      grupo: macro
-      googlenews: true
-    - name: Financial Times
-      url: https://news.google.com/rss/search?q=site:ft.com+when:12h&hl=en-US&gl=US&ceid=US:en
-      weight: 4
-      lang: en
-      grupo: macro
-      googlenews: true
 
-  # Manchete de fonte `grupo: macro` so passa se tiver um destes termos
-  # (o que de fato move cripto: guerra, petroleo, juros, dolar, China, sancao)
   macro_termos:
     - iran
     - irã
@@ -249,7 +153,29 @@ news:
     - stablecoin
   # Termos que sozinhos ja mexem com o mercado (passam na primeira). Os outros da lista
   # acima (war, oil, strike, china...) so passam em dupla na manchete (14/09/2026).
+  # Geopolitica e evento que move mercado: se vier ANTES do nome de um ativo na
+  # manchete, a materia e sobre o evento e passa (regra dele, 16/09/2026).
   macro_fortes:
+    - ira
+    - irã
+    - iran
+    - israel
+    - russia
+    - rússia
+    - ucrania
+    - ucrânia
+    - china
+    - taiwan
+    - guerra
+    - war
+    - missil
+    - míssil
+    - missile
+    - ataque
+    - ormuz
+    - hormuz
+    - opec
+    - opep
     - sancao
     - sanção
     - sanction
@@ -284,9 +210,6 @@ news:
       - ethereum
       - etf
       - sec
-      - federal reserve
-      - fed
-      - cpi
       - halving
       - regulamenta
       - regulation
@@ -296,9 +219,6 @@ news:
       - corretora
       - exchange
       - etf
-      - banco central
-      - selic
-      - juros
       - hackeado
       - hacker
       - invasao
@@ -312,12 +232,9 @@ news:
       - binance
       - coinbase
       - blackrock
-      - tesouro
       - drex
       - tokeniza
     baixa:     # +1 (nao conta como assunto: Ibovespa/dolar sozinhos nao sao cripto, 14/09)
-      - ibovespa
-      - dolar
       - defi
       - nft
       - staking
@@ -432,7 +349,7 @@ parceiros:
 # ---------------------------------------------------------------------------
 imagens:
   ligado: true
-  ligar_em: "2026-09-15"
+  ligar_em: "2026-09-17"   # religado em 17/09 com trava de 2 fontes, 10 fontes e filtro novo
   pasta: artes/auto
 
 composer:

@@ -78,6 +78,19 @@ def montar(tipo: str, config: dict) -> tuple[str, str, str]:
         texto = ("🚀 Moedas mais buscadas hoje no CoinGecko (só entre as 300 maiores):\n\n" + "\n".join(linhas) +
                  "\n\nBusca não é compra. Qual dessas você já olhou?\n\n(CoinGecko)")
         return texto, img, "mais buscadas"
+    if tipo == "termometro":
+        # TERMOMETRO DA TROPA (17/09/2026): o dado do dia com a cara da casa.
+        # Arte propria -> qualifica no Original Content Rewards do X.
+        from .termometro import gerar as gerar_termometro
+        r = gerar_termometro(_saida("termometro", config))
+        mov = ""
+        if r["ontem"] is not None:
+            mov = (" subiu de " if r["valor"] > r["ontem"] else
+                   " caiu de " if r["valor"] < r["ontem"] else " igual a ") + str(r["ontem"]) + " ontem"
+        texto = (f"{r['piada']}\n\n"
+                 f"Medo & Ganancia em {r['valor']} ({r['rotulo'].lower()}){mov}.\n\n"
+                 f"{r['pergunta']}\n\n(alternative.me)")
+        return texto, r["arquivo"], "termometro da tropa"
     if tipo in ("fng", "stable", "hashrate", "btc"):
         dias = 30 if tipo == "stable" else None
         r = grafico.gerar(tipo, _saida(tipo, config), dias=dias)

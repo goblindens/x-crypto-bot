@@ -9,6 +9,7 @@ on:
     - cron: "5 */6 * * *"                # a cada 6 h -- TEMPO REAL: job continuo que olha os feeds a cada 90 s e publica na hora (14/09)
     - cron: "20 16 * * *"                # 13:20 BRT todo dia -- ranking do dia (imagem + chamada pro grupo)
     - cron: "0 21 * * *"                 # 18:00 BRT -- dado: mais buscadas (card)
+    - cron: "0 22 * * *"                 # 19:00 BRT -- TERMOMETRO DA TROPA (melhor faixa de alcance dele)
     - cron: "0 23 * * *"                 # 20:00 BRT -- dado: stablecoins (dia par) / hashrate (dia impar)
     - cron: "30 6 * * 1"                 # segunda 03:30 BRT -- renova o token do Threads
   workflow_dispatch:
@@ -19,7 +20,7 @@ on:
         options: [news, market, ranking, dado, loop, refresh]
         default: news
       tipo:
-        description: "modo dado: mercado | fng | trending | stable | hashrate | btc"
+        description: "modo dado: termometro | mercado | fng | trending | stable | hashrate | btc"
         type: string
         default: mercado
       dry_run:
@@ -69,8 +70,8 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '20 16 * * *' && 'ranking' || (github.event.schedule == '0 10 * * *' || github.event.schedule == '0 12 * * *' || github.event.schedule == '0 21 * * *' || github.event.schedule == '0 23 * * *') && 'dado' || 'news') }}
-          TIPO: ${{ github.event_name == 'workflow_dispatch' && inputs.tipo || (github.event.schedule == '0 10 * * *' && 'mercado' || github.event.schedule == '0 12 * * *' && 'fng' || github.event.schedule == '0 21 * * *' && 'trending' || github.event.schedule == '0 23 * * *' && 'alternado' || 'mercado') }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '20 16 * * *' && 'ranking' || (github.event.schedule == '0 10 * * *' || github.event.schedule == '0 12 * * *' || github.event.schedule == '0 21 * * *' || github.event.schedule == '0 22 * * *' || github.event.schedule == '0 23 * * *') && 'dado' || 'news') }}
+          TIPO: ${{ github.event_name == 'workflow_dispatch' && inputs.tipo || (github.event.schedule == '0 10 * * *' && 'mercado' || github.event.schedule == '0 12 * * *' && 'fng' || github.event.schedule == '0 21 * * *' && 'trending' || github.event.schedule == '0 22 * * *' && 'termometro' || github.event.schedule == '0 23 * * *' && 'alternado' || 'mercado') }}
           DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
         run: |

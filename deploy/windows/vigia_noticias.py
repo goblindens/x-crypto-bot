@@ -40,6 +40,12 @@ def loop_vivo() -> bool:
 
 def main() -> int:
     os.makedirs(LOGS, exist_ok=True)
+    # Trava de pausa: enquanto existir logs/PAUSADO, o loop nao sobe.
+    # Criada em 16/09/2026, quando ele mandou parar as noticias ("vamos pausar
+    # ate voce aprender a validar"). Para religar: apagar o arquivo.
+    pausa = os.path.join(LOGS, "PAUSADO")
+    if os.path.exists(pausa):
+        return 0
     if loop_vivo():
         return 0
     try:

@@ -169,6 +169,29 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
         print(f"[news] nota {article.score} | {article.source} | {article.title}")
         print(f"        motivos: {', '.join(article.reasons)}")
 
+        # ANTI-REPETICAO (17/09/2026): o erro do Fed foram 3 posts do mesmo
+        # assunto em 1 hora. Em tempo real e sem revisao, esta e a trava que
+        # impede a enxurrada.
+        from .repeticao import repetido
+        rep, por_que = repetido(article, state, horas=int((config.get("news") or {}).get("horas_sem_repetir", 6)))
+        if rep:
+            print(f"[repeticao] BARRADO: {por_que}")
+            state.mark_seen(article.url)
+            continue
+
+        # TEMPO REAL COM TRAVA (17/09): medido que a 2a fonte demora 226 min na
+        # mediana -- esperar mata a noticia. Entao: fonte tier 1 publica na hora;
+        # acusacao/polemica espera confirmacao; o numero e sempre conferido ao
+        # vivo pelo verificador logo abaixo.
+        from .confirmacao import avaliar
+        conf = avaliar(article, articles, config)
+        if not conf["ok"]:
+            print(f"[confirmacao] BARRADO: {conf['motivo']}")
+            state.mark_seen(article.url)
+            continue
+        print(f"[confirmacao] OK -- {conf.get('modo', '')}")
+        article.confirmacoes = conf.get("confirmacoes", [])
+
         text = compose_news(article, config)
         if text == "SKIP":
             state.mark_seen(article.url)
