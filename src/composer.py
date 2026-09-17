@@ -167,7 +167,7 @@ _SCHEMA = {
         },
         "resumo": {
             "type": "string",
-            "description": "2 a 3 linhas explicando o fato: quem, quanto, quando, o que mudou. Sem repetir a manchete palavra por palavra.",
+            "description": "1 ou 2 frases curtas (ATE 130 caracteres no total) explicando o fato: quem, quanto, quando, o que mudou. Sem repetir a manchete palavra por palavra.",
         },
         "publicar": {
             "type": "boolean",
@@ -197,7 +197,8 @@ def _compose_news_with_claude(article, config: dict):
         f"Tom: {style.get('voice', 'direto e informativo')}\n"
         "Regras rigidas:\n"
         "- Devolva DOIS campos: 'manchete' (1 linha, ate 110 caracteres, fato direto) e "
-        "'resumo' (2 a 3 linhas explicando o fato: quem, quanto, quando, o que mudou).\n"
+        "'resumo' (1 ou 2 frases, ATE 130 CARACTERES, explicando quem/quanto/quando/o que mudou).\n"
+        "- Os dois somados nao podem passar de 240 caracteres. Se nao couber, encurte o resumo.\n"
         "- O resumo NAO repete a manchete palavra por palavra: ele acrescenta o que a "
         "manchete nao coube -- numeros, contexto, quem esta envolvido.\n"
         "- Se um pais for central, comece com a bandeira dele (emoji), ex.: '🇺🇸 Senado vota...'.\n"
@@ -250,12 +251,18 @@ def _compose_news_with_claude(article, config: dict):
     resumo = (data.get("resumo") or "").strip()
     if not manchete:
         return None
-    body = manchete + ("\n\n" + resumo if resumo else "")
 
-    hashtags = pick_hashtags(body or article.title, config)
+    hashtags = pick_hashtags(manchete + " " + resumo or article.title, config)
     tail = f"\n\n({article.source})"      # so o nome da fonte, entre parenteses, sem link (regra dele)
     if hashtags:
         tail += f"\n\n{hashtags}"
-    body = truncate_to_fit(body, reserved=tweet_length(tail))
+
+    # A MANCHETE NUNCA E CORTADA. Se faltar espaco, encolhe o resumo; se nem
+    # assim couber, o post sai so com a manchete (melhor que resumo pela metade).
+    sobra = limit() - tweet_length(manchete) - tweet_length(tail) - 2   # 2 = "\n\n"
+    if resumo and tweet_length(resumo) > sobra:
+        resumo = truncate_to_fit(resumo, reserved=limit() - sobra) if sobra > 40 else ""
+    body = manchete + ("\n\n" + resumo if resumo else "")
+
     text = body + tail
     return text if tweet_length(text) <= limit() else None

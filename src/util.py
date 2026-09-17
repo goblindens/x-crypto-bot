@@ -81,18 +81,24 @@ def fits(text: str) -> bool:
 
 
 def truncate_to_fit(text: str, reserved: int = 0) -> str:
-    """Corta o texto em limite de palavra para caber no post."""
+    """Corta o texto em limite de palavra para caber no post.
+
+    Preserva as quebras de linha: o `split()` sem argumento colava manchete e
+    resumo numa linha so (formato de 16/09/2026 quebrou por causa disso).
+    """
     budget = _LIMIT - reserved
     if tweet_length(text) <= budget:
         return text
-    words = text.split()
+    # quebra em palavras E em quebras de linha, guardando o separador de cada uma
+    pedacos = re.findall(r"\n+|[^\s]+|[ \t]+", text)
     out: list[str] = []
-    for word in words:
-        candidate = " ".join(out + [word])
+    for p in pedacos:
+        candidate = "".join(out + [p])
         if tweet_length(candidate) + 1 > budget:  # +1 para as reticencias
             break
-        out.append(word)
-    return (" ".join(out).rstrip(",.;:-") + "...") if out else text[: budget - 3] + "..."
+        out.append(p)
+    montado = "".join(out).rstrip()
+    return (montado.rstrip(",.;:-") + "...") if montado else text[: budget - 3] + "..."
 
 
 def has_term(haystack_folded: str, term: str) -> bool:
