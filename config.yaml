@@ -354,7 +354,7 @@ parceiros:
 # ---------------------------------------------------------------------------
 imagens:
   ligado: true
-  ligar_em: "2026-09-30"   # PAUSADO 17/09: "traga aqui pra mim antes de postar". Gera e so MOSTRA no log.
+  ligar_em: "2026-09-17"   # religado 17/09 pra soltar o ranking (ele autorizou)
   pasta: artes/auto
 
 composer:
