@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 51
+    "2026-09": 52
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -437,6 +437,14 @@
       "ts": "2026-09-17T20:17:43.899700+00:00",
       "tweet_id": "18447392992123854",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-171727.png"
+    },
+    {
+      "kind": "ranking",
+      "text": "Domingo tem rangão. Hoje são 16 concorrendo.\n\nSão 20 dólares pra quem sair no sorteio. Já pagamos 2 — os dois nomes estão na arte, com a data de cada um.\n\nComo funciona: o ranking fecha domingo às 13h, e alguém da lista leva. Sorteio gravado, na random.org, com o vídeo no grupo.\n\nAinda não opera na OKX pelo nosso link? Dá tempo. Quem entrar até domingo, dia 20/09, já concorre. Faltam 3 dias.\n\nÉ de graça. O grupo tá na primeira resposta 👇",
+      "title": "ranking da semana",
+      "ts": "2026-09-17T21:37:23.554497+00:00",
+      "tweet_id": "18091070264182351",
+      "url": "https://raw.githubusercontent.com/goblindens/x-crypto-bot/main/artes/ranking.png"
     }
   ],
   "seen": {
@@ -450,7 +458,7 @@
     "0df3b5b1b75f8dc9": "2026-09-14T21:55:39.950411+00:00",
     "0e7a7711dfb4f6af": "2026-09-14T21:46:34.710913+00:00",
     "10fb52873081866c": "2026-09-15T07:36:15.502663+00:00",
-    "1176fa13ad40c40a": "2026-09-15T12:07:26.756289+00:00",
+    "1176fa13ad40c40a": "2026-09-17T21:37:23.554541+00:00",
     "13f5f1d649c25eb8": "2026-09-16T03:03:00.113820+00:00",
     "166f93df9a7bab32": "2026-09-17T03:58:27.678853+00:00",
     "18204cb4ec26d496": "2026-09-14T21:59:49.075539+00:00",
