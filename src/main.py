@@ -244,16 +244,26 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             # Imagem em todo post (14/09): card SecretLab com a manchete, numero e fonte
             from .cards import card_manchete
             from .dado import _saida
-            manchete = text.split("\n")[0].strip()
-            for pref in ("NOVO:", "URGENTE:", "JUST IN:", "NEW:"):
-                manchete = manchete.replace(pref, "").strip()
+            # FORMATO DE 17/09/2026: o post e gancho · fato · provocacao.
+            #
+            # O codigo de 14/09 fazia duas coisas que agora atrapalham:
+            #   1. colava "NOVO:" na frente -- com o gancho isso fica
+            #      "NOVO: O Congresso travou e a SEC resolveu sozinha", que
+            #      lê como o formato velho e mata o angulo;
+            #   2. punha a PRIMEIRA linha no card -- que antes era a manchete
+            #      e agora e o gancho. Card e texto saiam iguais, que foi
+            #      exatamente a reclamacao dele.
+            #
+            # Agora: o texto sai limpo, e o card leva o FATO (2o paragrafo) --
+            # assim a imagem acrescenta em vez de repetir.
             import re
+            partes = [p.strip() for p in text.split("\n\n") if p.strip()]
+            manchete = partes[1] if len(partes) > 1 else (partes[0] if partes else "")
+            manchete = re.sub(r"\(\s*[^)]{2,40}\s*\)\s*$", "", manchete).strip()   # tira "(Fonte)" do fim
             manchete = re.sub(r"^[^\w\"'(¿¡]+", "", manchete)      # emoji/bandeira fica no texto, nao na arte (fonte do Windows nao tem)
             urgente = any(k in fold(article.title) for k in ("hack", "ataque", "liquida", "invas", "roub", "exploit", "despenc", "dispar", "crash"))
-            if not text.startswith(("NOVO:", "URGENTE:")):
-                text = ("URGENTE: " if urgente else "NOVO: ") + text      # molde dos canais grandes (14/09)
             try:
-                png = card_manchete(manchete, article.source, _saida("noticia", config), prefixo="URGENTE" if urgente else "NOVO")
+                png = card_manchete(manchete, article.source, _saida("noticia", config), prefixo="URGENTE" if urgente else "AGORA")
             except Exception as exc:
                 print(f"[card] nao gerou imagem ({exc}); vai so texto")
                 png = ""
