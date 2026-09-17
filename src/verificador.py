@@ -167,12 +167,25 @@ def _artigos_recentes(config: dict, horas: int = 24) -> dict:
     return por_fonte
 
 
-def checar_fontes(texto: str, config: dict) -> list:
+def checar_fontes(texto: str, config: dict, artigo=None) -> list:
+    """`artigo` e a materia que ORIGINOU o post, quando o chamador a tem.
+
+    Sem ela, a unica referencia era o RSS da fonte no momento da conferencia --
+    e o feed rotaciona: materia de 3 h atras ja saiu do RSS, entao um post
+    honesto era bloqueado por falta de lastro (visto em 17/09/2026: Bloomberg e
+    CoinDesk barrados com noticia verdadeira). A materia de origem entra na
+    comparacao com prioridade.
+    """
     problemas = []
     recentes = _artigos_recentes(config)
     conhecidas = {k: v for k, v in recentes.items()}
+    origem = fold(f"{artigo.title} {artigo.summary}") if artigo is not None else ""
     # citacao "via Fonte" ou "(Fonte)" no fim do trecho -- so conta se parecer nome de fonte conhecida
-    cit = list(re.finditer(r"\(?\bvia\s+([A-Za-zÀ-ÿ0-9][^()\n]*?)\)?(?=\n|$|\))", texto))
+    # "via" so e citacao quando o nome seguinte E uma fonte conhecida. Sem isso
+    # a preposicao comum virava fonte: "negociacao via blockchain" bloqueava o
+    # post inteiro com "fonte 'blockchain' nao validada" (17/09/2026).
+    cit = [m for m in re.finditer(r"\(?\bvia\s+([A-Za-zÀ-ÿ0-9][^()\n]*?)\)?(?=\n|$|\))", texto)
+           if any(k in fold(m.group(1)) or fold(m.group(1)) in k for k in conhecidas)]
     for m in re.finditer(r"\(([A-Za-zÀ-ÿ][^()\n]{2,60})\)", texto):
         nome = fold(m.group(1))
         if any(k in nome or nome in k for k in conhecidas) and not any(c.start() == m.start() for c in cit):
@@ -205,10 +218,23 @@ def checar_fontes(texto: str, config: dict) -> list:
             if not arts:
                 problemas.append(f"'{nome}': nada publicado nas ultimas 24h pra confirmar"); continue
             for trecho in trechos:
+                # A LINHA DE OPINIAO TEM REGRA PROPRIA (17/09/2026).
+                # Ela e leitura do fato, nao repeticao dele -- entao usa outras
+                # palavras e quase nunca bate ancora. Cobrar ancora aqui cortava
+                # 6 de 6 opinioes boas. O que ela nao pode e INVENTAR: nome,
+                # orgao, pais, empresa ou numero que nao esta na materia.
+                if trecho.strip().startswith("Na prática:"):
+                    intruso = _entidade_inventada(trecho, origem, arts)
+                    if intruso:
+                        problemas.append(f"opiniao cita '{intruso}', que nao esta na materia")
+                    continue
                 ancoras = _ancoras(trecho)
                 if not ancoras:
                     continue
                 melhor = 0
+                if origem:
+                    melhor = sum(1 for anc in ancoras
+                                 if anc in origem or any(en in origem for en in _EN.get(anc, ())))
                 for a in arts:
                     alvo = fold(a.title + " " + a.summary)
                     # fonte em ingles: cada ancora vale tambem pela traducao (radical PT -> termos EN)
@@ -234,6 +260,38 @@ _EN = {"acoes": ("stock",), "tecno": ("tech",), "corri": ("race",), "desac": ("s
 _PARADAS = {"enquanto", "porque", "quando", "sobre", "entre", "depois", "antes", "ainda", "hoje", "ontem", "semana",
             "muito", "pouco", "outro", "outra", "mesmo", "mesma", "nesta", "neste", "ganhou", "ganhar", "chora", "bolha",
             "pesada", "comeco", "apenas", "todos", "todas", "pouco", "coisa", "algo"}
+
+
+# Palavras que comecam frase ou sao comuns em portugues -- maiuscula nelas nao
+# significa nome proprio.
+_NAO_E_NOME = {"na", "o", "a", "os", "as", "um", "uma", "abre", "libera", "corretoras",
+               "empresas", "investidores", "bolsas", "quem", "isso", "agora", "sem",
+               "com", "para", "pode", "podem", "passa", "deixa", "vira", "fica", "cria",
+               "muda", "tira", "poe", "poupa", "custa", "vale", "entra", "sai", "e", "de",
+               "do", "da", "no", "em", "ao", "pelo", "pela", "mercado", "bolsa", "banco",
+               "cripto", "bitcoin", "ethereum", "token", "tokenizadas", "tokenizados"}
+
+
+def _entidade_inventada(trecho: str, origem: str, arts: list) -> str:
+    """Nome proprio ou numero citado na opiniao que NAO aparece na materia.
+
+    E a unica trava que a linha de opiniao precisa: ela pode interpretar o fato
+    com as palavras que quiser, mas nao pode trazer para dentro do post uma
+    empresa, um orgao, um pais ou um numero que a fonte nao publicou.
+    """
+    corpo = trecho.split(":", 1)[-1]
+    alvo = origem + " " + " ".join(fold(a.title + " " + a.summary) for a in arts)
+    for n in re.findall(r"\d[\d.,]*", corpo):
+        if len(n) > 1 and n not in alvo:
+            return n
+    # nome proprio = palavra com inicial maiuscula que nao abre a frase
+    for m in re.finditer(r"(?<![.!?]\s)(?<!^)\b([A-ZÀ-Ý][\wÀ-ÿ]{2,})", corpo):
+        p = m.group(1)
+        if fold(p) in _NAO_E_NOME:
+            continue
+        if fold(p)[:5] not in alvo:
+            return p
+    return ""
 
 
 def _ancoras(trecho: str) -> set:
@@ -264,8 +322,9 @@ def checar_proibidas(texto: str) -> list:
 
 
 # -------------------------------------------------------------------- tudo
-def verificar(texto: str, config: dict | None = None) -> dict:
-    problemas = checar_proibidas(texto) + checar_numeros(texto) + checar_fontes(texto, config or {})
+def verificar(texto: str, config: dict | None = None, artigo=None) -> dict:
+    problemas = (checar_proibidas(texto) + checar_numeros(texto)
+                 + checar_fontes(texto, config or {}, artigo))
     return {"ok": not problemas, "problemas": problemas, "quando": now_utc().isoformat(timespec="seconds")}
 
 

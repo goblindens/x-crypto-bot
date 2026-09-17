@@ -211,7 +211,7 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
 
         # MODO VERIFICACAO (regra dele, 14/09/2026): numero ao vivo e fonte conferidos antes de sair.
         from .verificador import verificar
-        ver = verificar(text, config)
+        ver = verificar(text, config, article)
         if not ver["ok"]:
             # A REACAO CAI SOZINHA, o fato nao (17/09/2026). Se o unico problema
             # esta na linha "Na pratica", tira a linha e confere o fato de novo:
@@ -219,7 +219,7 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
             sem_reacao = "\n\n".join(p for p in text.split("\n\n")
                                      if not p.strip().startswith("Na prática:"))
             if sem_reacao != text:
-                ver2 = verificar(sem_reacao, config)
+                ver2 = verificar(sem_reacao, config, article)
                 if ver2["ok"]:
                     print("[verificacao] reacao reprovada, publicando so o fato: "
                           + " | ".join(ver["problemas"])[:120])
