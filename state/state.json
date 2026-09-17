@@ -1,6 +1,6 @@
 {
   "monthly": {
-    "2026-09": 37
+    "2026-09": 38
   },
   "mostrados": [
     "2026-09-14T23:40:03.516032+00:00"
@@ -317,6 +317,14 @@
       "ts": "2026-09-17T14:36:14.665840+00:00",
       "tweet_id": "18133081492643367",
       "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/mercado-20260917-113555.png"
+    },
+    {
+      "kind": "news",
+      "text": "NOVO: 🇺🇸 SEC aprova regra temporária para testar ações tokenizadas em blockchain\n\nIsenção limitada permite negociação em plataformas blockchain enquanto SEC estuda regulação futura\n\nNa prática: Abre porta para corretoras testarem tokenização de ações sob supervisão da SEC\n\n(Livecoins)",
+      "title": "SEC aprova lei temporária que autoriza testes com ações tokenizadas em plataformas blockchain",
+      "ts": "2026-09-17T17:04:27.791390+00:00",
+      "tweet_id": "17905460067550321",
+      "url": "/home/runner/work/x-crypto-bot/x-crypto-bot/artes/auto/noticia-20260917-140412.png"
     }
   ],
   "seen": {
@@ -375,6 +383,7 @@
     "4b182bebb01911b5": "2026-09-14T22:01:04.138622+00:00",
     "4b672f12834961a9": "2026-09-16T03:57:23.198790+00:00",
     "4cedeb7bcadbdf60": "2026-09-17T06:03:26.672732+00:00",
+    "4d4ff9232f4cb448": "2026-09-17T17:04:27.791435+00:00",
     "4e0e235aba34cd03": "2026-09-14T22:09:34.930257+00:00",
     "5104b97eafd6d1e8": "2026-09-14T21:38:50.216669+00:00",
     "521d22fa6710b935": "2026-09-13T16:13:13.905460+00:00",
@@ -442,6 +451,7 @@
     "9c0f138eed404e3d": "2026-09-15T01:45:13.195976+00:00",
     "9cebf0933d26e47d": "2026-09-14T21:47:13.812949+00:00",
     "9ea69b08567651c8": "2026-09-14T23:38:06.349264+00:00",
+    "9fce1477b29086ce": "2026-09-17T17:03:31.484051+00:00",
     "9ff6fca38ebd4283": "2026-09-15T07:41:36.446316+00:00",
     "a13170125de42eab": "2026-09-14T21:52:22.817111+00:00",
     "a1947ab9f7868543": "2026-09-15T08:28:26.179880+00:00",
