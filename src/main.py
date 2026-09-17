@@ -60,8 +60,13 @@ def make_publisher(config: dict, dry_run: bool):
     raise SystemExit(f"plataforma desconhecida no config.yaml: {platform} (use 'threads' ou 'x')")
 
 
-def quota_gate(state: State, config: dict, force: bool) -> str:
-    """Devolve uma mensagem de bloqueio, ou '' se pode postar."""
+def quota_gate(state: State, config: dict, force: bool, prioritario: bool = False) -> str:
+    """Devolve uma mensagem de bloqueio, ou '' se pode postar.
+
+    `prioritario` = post da casa com hora marcada (ranking, Termometro). Esses
+    nao podem ficar de fora porque a noticia encheu o teto -- sao o conteudo
+    proprio, o que rende e o que o X paga. So o teto MENSAL segura eles.
+    """
     limits = config["limits"]
     monthly_cap = int(limits.get("max_posts_per_month", 400))
     if state.posts_this_month() >= monthly_cap:
@@ -72,7 +77,7 @@ def quota_gate(state: State, config: dict, force: bool) -> str:
     # No modo prova nada e publicado, mas cada manchete "mostrada" gasta IA igual.
     # Por isso o mostrado conta no teto e no espacamento (14/09/2026).
     hoje = state.posts_last_24h() + state.mostrados_last_24h()
-    if hoje >= daily_cap:
+    if hoje >= daily_cap and not prioritario:
         return f"teto diario atingido ({hoje}/{daily_cap})"
     gap = limits.get("min_minutes_between_posts", 40)
     desde = [d for d in (state.minutes_since_last_post(), state.minutos_desde_ultimo_mostrado()) if d is not None]
@@ -126,7 +131,7 @@ def run_dado(config: dict, state: State, publisher, force: bool, tipo: str) -> i
     if not (force or publisher.dry_run) and state.posted_kind_today(kind):
         print(f"[dado] {tipo} ja publicado nas ultimas 20h")
         return 0
-    blocked = quota_gate(state, config, force or publisher.dry_run)
+    blocked = quota_gate(state, config, force or publisher.dry_run, prioritario=True)
     if blocked:
         print(f"[quota] parando: {blocked}")
         return 0
@@ -316,7 +321,7 @@ def run_ranking(config: dict, state: State, publisher, force: bool, image_url: s
     if not (force or publisher.dry_run) and state.posted_kind_today("ranking"):
         print("[ranking] ranking ja publicado nas ultimas 20h")
         return 0
-    blocked = quota_gate(state, config, force or publisher.dry_run)
+    blocked = quota_gate(state, config, force or publisher.dry_run, prioritario=True)
     if blocked:
         print(f"[quota] parando: {blocked}")
         return 0
