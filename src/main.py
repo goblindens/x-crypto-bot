@@ -156,6 +156,18 @@ def run_dado(config: dict, state: State, publisher, force: bool, tipo: str) -> i
 
 
 def run_news(config: dict, state: State, publisher: Publisher, force: bool, limit: int) -> int:
+    # TETO DE NOTICIA POR DIA (dele, 18/09/2026: "eu ja falei que nao e pra
+    # postar mais de 10x"). Em 17/09 sairam 27 posts de noticia -- o teto que
+    # existia (limits.max_posts_per_day = 100) e trava tecnica contra loop, nao
+    # regra editorial, e ele e COMPARTILHADO com o espelho do Instagram.
+    # Baixar aquele numero cortaria o meme junto, que e o que mais rende.
+    # Por isso a noticia tem teto proprio aqui.
+    teto = int((config.get("news") or {}).get("max_por_dia", 10))
+    saiu = state.posts_kind_last_24h("news", "parceiro")
+    if saiu >= teto and not force:
+        print(f"[news] teto do dia atingido: {saiu}/{teto} noticias em 24h")
+        return 0
+
     articles = collect_news(config)
     if not articles:
         print("[news] nenhuma materia coletada")
@@ -169,6 +181,9 @@ def run_news(config: dict, state: State, publisher: Publisher, force: bool, limi
 
     posted = 0
     for article in chosen:
+        if state.posts_kind_last_24h("news", "parceiro") >= teto and not force:
+            print(f"[news] teto do dia atingido: {teto}/{teto} noticias em 24h")
+            break
         blocked = quota_gate(state, config, force or publisher.dry_run)
         if blocked:
             print(f"[quota] parando: {blocked}")

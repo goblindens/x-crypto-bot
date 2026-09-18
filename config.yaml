@@ -54,6 +54,10 @@ news:
   # DESLIGADO ate ele aprovar os posts na tela. Trocar aqui, nao no codigo.
   formato: gancho               # gancho | curto
   teto_caracteres: 120          # so vale no formato curto
+  # TETO DE NOTICIA POR DIA (dele, 18/09/2026). Em 17/09 sairam 27.
+  # NAO mexer em limits.max_posts_per_day pra segurar noticia: aquele teto e
+  # compartilhado com o espelho do Instagram e cortaria o meme junto.
+  max_por_dia: 10
   # ------------------------------------------------------------------
   # AS 10 FONTES (decisao dele, 17/09/2026). Eram 25 e o robo escolhia por
   # nota, nao por importancia -- foi assim que cobre e armas orbitais entraram.

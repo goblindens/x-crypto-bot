@@ -70,6 +70,16 @@ class State:
     def posted_kind_today(self, kind: str) -> bool:
         return any(p.get("kind") == kind for p in self.recent_posts(20))
 
+    def posts_kind_last_24h(self, *kinds: str) -> int:
+        """Quantos posts de um tipo sairam nas ultimas 24 h.
+
+        Existe porque o teto diario e COMPARTILHADO com o espelho do Instagram
+        (`limits.max_posts_per_day`, lido tambem em espelho.py). Baixar aquele
+        numero pra segurar noticia cortaria o meme junto -- e o espelho do
+        Insta e o que mais rende. Entao a noticia ganhou teto proprio.
+        """
+        return sum(1 for p in self.recent_posts(24) if p.get("kind") in kinds)
+
     # -------------------------------------------------------------- escrita
     # -------------------------------------------------------------- modo prova
     # "mostrar" nao publica, mas CONSOME IA igual a um post de verdade. Sem contar
