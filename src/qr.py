@@ -7,7 +7,7 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "artes", "qr-grupo.png")
-LINK_PADRAO = "https://chat.whatsapp.com/Kg3lM88Q5tu17jXqbxxWRw"   # link que ele mandou em 14/09/2026 (Secret Lab)
+LINK_PADRAO = "https://chat.whatsapp.com/LNCynEcFzkq0K4CJgbHRn5"   # link que ele mandou em 14/11/2026 (o de 14/09 parou de funcionar)
 
 
 def imagem(link: str = LINK_PADRAO, tamanho: int = 150):
